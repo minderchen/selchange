@@ -8,9 +8,20 @@ const LINE_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']
 const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰建卦', '卦象結果', '個人反思', '共同整合', '預覽與匯出']
 const SEL_OPTIONS = ['自我覺察', '自我管理', '社會覺察', '人際關係技巧', '負責任的決定']
 const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }
+const SEL_CAPABILITIES = [
+  { name: '自我覺察', english: 'Self-Awareness', description: '認識自己的情緒、價值、動機、優勢與限制。' },
+  { name: '自我管理', english: 'Self-Management', description: '調節情緒、衝動與行動，不讓情緒直接控制自己。' },
+  { name: '社會覺察', english: 'Social Awareness', description: '理解他人的觀點、情緒與處境，具備同理心與換位思考。' },
+  { name: '人際關係技巧', english: 'Relationship Skills', description: '溝通、合作、協商、處理衝突與建立信任。' },
+  { name: '負責任的決策', english: 'Responsible Decision-Making', description: '整合自我、他人與情境，評估後果，作出兼顧長期影響的選擇。' },
+]
 
 const clean = (value) => value.trim()
-const nowLocal = () => new Date().toISOString().slice(0, 16)
+const nowLocal = () => {
+  const date = new Date()
+  const pad = (value) => String(value).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 const formatDate = (value) => value ? new Intl.DateTimeFormat('zh-TW', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(value)) : '尚未填寫'
 const makeId = () => crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`
 const emptyReflection = (name = '我') => ({ id: makeId(), name, interpretation: '', feeling: '', need: '', insight: '' })
@@ -19,7 +30,7 @@ const createJournal = () => {
   return {
     journalId: makeId(), schemaVersion: '1.0', hexagramDataVersion: 'Hexagram.xlsx',
     createdAt: created, updatedAt: created, activityAt: nowLocal(), status: 'draft',
-    mode: 'group', groupName: '', members: [], questionType: 'preset', questionText: '',
+    mode: 'individual', groupName: '', members: [], questionType: 'preset', questionText: '',
     preSolutions: [''], dice: [], reflections: [], sharedInterpretation: '', jointSolution: '',
     nextAction: '', selReflection: '', selTags: [],
   }
@@ -30,11 +41,12 @@ function getCalculation(dice) {
   const bits = dice.map((value) => value % 2 ? '1' : '0')
   const originalId = [...bits].reverse().join('')
   const reversedId = [...originalId].reverse().join('')
+  const pairTitle = reversedId === originalId ? '錯卦' : '綜卦'
   const comprehensiveId = reversedId === originalId
     ? [...originalId].map((bit) => bit === '1' ? '0' : '1').join('')
     : reversedId
   return {
-    originalId, comprehensiveId,
+    originalId, comprehensiveId, pairTitle,
     original: hexagrams.find((item) => item.id === originalId),
     comprehensive: hexagrams.find((item) => item.id === comprehensiveId),
   }
@@ -50,7 +62,7 @@ function HexagramLines({ id, partialDice = [], labelled = false }) {
         : partialDice[lineNo - 1] % 2 ? '1' : '0'
     return { bit, lineNo, name: LINE_NAMES[lineNo - 1] }
   })
-  return <div className="hexagram-lines" aria-label={id ? `卦象 ${id}` : '目前累積卦象'}>
+  return <div className={`hexagram-lines ${labelled ? 'is-labelled' : ''}`} aria-label={id ? `卦象 ${id}` : '目前累積卦象'}>
     {items.map(({ bit, lineNo, name }) => (
       <div className="line-row" key={lineNo}>
         {labelled && <span>{name}</span>}
@@ -98,8 +110,8 @@ function BasicStep({ journal, update }) {
     <div className="eyebrow">Step 1 · 由這次活動開始</div><h2>建立學習日誌</h2>
     <p className="helper">資料僅儲存在此瀏覽器。共用裝置使用後，請記得匯出或清除資料。</p>
     <fieldset className="choice-group"><legend>活動模式</legend>
-      <label><input type="radio" checked={journal.mode === 'group'} onChange={() => update({ mode: 'group' })} /> 團體學習</label>
       <label><input type="radio" checked={journal.mode === 'individual'} onChange={() => update({ mode: 'individual', members: [] })} /> 個人學習</label>
+      <label><input type="radio" checked={journal.mode === 'group'} onChange={() => update({ mode: 'group' })} /> 小組學習</label>
     </fieldset>
     <div className="form-grid">
       <label>活動日期與時間<input type="datetime-local" value={journal.activityAt} onChange={(event) => update({ activityAt: event.target.value })} /></label>
@@ -126,6 +138,21 @@ function QuestionStep({ journal, update }) {
 function CurrentQuestion({ question }) {
   if (!clean(question)) return null
   return <aside className="current-question"><span>本次大哉問</span><p>{question}</p></aside>
+}
+
+function HexagramCarryover({ calculation }) {
+  if (!calculation?.original || !calculation?.comprehensive) return null
+  const items = [
+    ['本卦', calculation.original],
+    [calculation.pairTitle, calculation.comprehensive],
+  ]
+  return <div className="hexagram-carryover" aria-label="本卦與配對卦摘要">
+    {items.map(([title, data]) => <article key={title}>
+      <span>{title}</span>
+      <strong>第 {data.seq} 卦 · {data.hexagram}</strong>
+      <p>「{data.judgement1}」<br />「{data.judgement2}」</p>
+    </article>)}
+  </div>
 }
 
 function SolutionsStep({ journal, update }) {
@@ -177,15 +204,17 @@ function DiceStep({ journal, update }) {
 function ResultsStep({ journal }) {
   const calculation = getCalculation(journal.dice)
   if (!calculation) return <section className="step-section"><div className="eyebrow">Step 5 · 換個視角</div><h2>本卦與綜卦</h2><CurrentQuestion question={journal.questionText} /><div className="notice error">請先完成六次擲骰，才能檢視卦象結果。</div></section>
-  return <section className="step-section"><div className="eyebrow">Step 5 · 換個視角</div><h2>本卦與綜卦</h2><p className="helper">翻閱兩張牌卡，讓金句、SEL 連結與大象辭帶來新的觀看角度。</p><CurrentQuestion question={journal.questionText} /><div className="card-grid"><Card title="本卦" data={calculation.original} id={calculation.originalId} /><Card title="綜卦" data={calculation.comprehensive} id={calculation.comprehensiveId} /></div></section>
+  return <section className="step-section"><div className="eyebrow">Step 5 · 換個視角</div><h2>本卦與綜卦</h2><p className="helper">翻閱兩張牌卡，讓金句、SEL 連結與大象辭帶來新的觀看角度。</p><CurrentQuestion question={journal.questionText} /><div className="card-grid"><Card title="本卦" data={calculation.original} id={calculation.originalId} /><Card title={calculation.pairTitle} data={calculation.comprehensive} id={calculation.comprehensiveId} /></div></section>
 }
 
 function ReflectionsStep({ journal, update }) {
+  const calculation = getCalculation(journal.dice)
   const names = journal.mode === 'group' ? journal.members.map(clean).filter(Boolean) : ['我']
   const reflections = names.map((name, index) => journal.reflections.find((item) => item.name === name) || emptyReflection(name || `成員 ${index + 1}`))
   const save = (next) => update({ reflections: next })
   const updateField = (index, field, value) => save(reflections.map((item, i) => i === index ? { ...item, [field]: value } : item))
   return <section className="step-section"><div className="eyebrow">Step 6 · 留下自己的聲音</div><h2>我的解釋、感受與啟發</h2><p className="helper">{names.length ? '分別記錄每個人的想法，再進行共同整合。' : '尚未加入成員，請以一份團體反思先記錄。'}</p><CurrentQuestion question={journal.questionText} />
+    <HexagramCarryover calculation={calculation} />
     {(names.length ? reflections : [journal.reflections[0] || emptyReflection('團體')]).map((reflection, index) => <article className="reflection-card" key={reflection.id}><h3>{reflection.name}</h3><div className="form-grid">{[['interpretation', '我的解釋'], ['feeling', '我的感受'], ['need', '我的需要'], ['insight', '得到的啟發']].map(([field, label]) => <label key={field}>{label}<textarea rows="3" value={reflection[field]} onChange={(event) => updateField(index, field, event.target.value)} /></label>)}</div></article>)}
   </section>
 }
@@ -228,7 +257,7 @@ function ExportStep({ journal, complete }) {
     const reflectionsText = journal.reflections.length
       ? journal.reflections.map((item) => `${item.name}\n解釋：${valueOrBlank(item.interpretation)}\n感受：${valueOrBlank(item.feeling)}\n需要：${valueOrBlank(item.need)}\n啟發：${valueOrBlank(item.insight)}`).join('\n\n')
       : '尚未填寫'
-    const text = `SEL 易想天開｜學習日誌\n活動時間：${formatDate(journal.activityAt)}\n模式：${journal.mode === 'group' ? '團體學習' : '個人學習'}\n組別：${valueOrBlank(journal.groupName)}\n成員：${journal.members.filter(clean).join('、') || '尚未填寫'}\n\n問題：\n${valueOrBlank(journal.questionText)}\n\n卜卦前解方：\n${journal.preSolutions.filter(clean).map((item, index) => `${index + 1}. ${item}`).join('\n') || '尚未填寫'}\n\n擲骰與六爻：\n${diceText}\n\n${hexagramText('本卦', result?.original)}\n\n${hexagramText('綜卦', result?.comprehensive)}\n\n個人／成員反思：\n${reflectionsText}\n\n共同整合：\n共同詮釋：${valueOrBlank(journal.sharedInterpretation)}\n共同解方：${valueOrBlank(journal.jointSolution)}\n下一步：${valueOrBlank(journal.nextAction)}\nSEL 連結：${journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}\nSEL 反思：${valueOrBlank(journal.selReflection)}\n\n建立時間：${formatDate(journal.createdAt)}\n最後更新：${formatDate(journal.updatedAt)}\n資料版本：${journal.hexagramDataVersion}`
+    const text = `SEL 易想天開｜學習日誌\n活動時間：${formatDate(journal.activityAt)}\n模式：${journal.mode === 'group' ? '小組學習' : '個人學習'}\n組別：${valueOrBlank(journal.groupName)}\n成員：${journal.members.filter(clean).join('、') || '尚未填寫'}\n\n問題：\n${valueOrBlank(journal.questionText)}\n\n卜卦前解方：\n${journal.preSolutions.filter(clean).map((item, index) => `${index + 1}. ${item}`).join('\n') || '尚未填寫'}\n\n擲骰與六爻：\n${diceText}\n\n${hexagramText('本卦', result?.original)}\n\n${hexagramText('綜卦', result?.comprehensive)}\n\n個人／成員反思：\n${reflectionsText}\n\n共同整合：\n共同詮釋：${valueOrBlank(journal.sharedInterpretation)}\n共同解方：${valueOrBlank(journal.jointSolution)}\n下一步：${valueOrBlank(journal.nextAction)}\nSEL 連結：${journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}\nSEL 反思：${valueOrBlank(journal.selReflection)}\n\n建立時間：${formatDate(journal.createdAt)}\n最後更新：${formatDate(journal.updatedAt)}\n資料版本：${journal.hexagramDataVersion}`
     await navigator.clipboard.writeText(text)
     window.alert('已複製學習日誌摘要。')
   }
@@ -237,11 +266,29 @@ function ExportStep({ journal, complete }) {
   </section>
 }
 
+function SelDialog({ onClose }) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+  return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="sel-dialog" role="dialog" aria-modal="true" aria-labelledby="sel-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <div className="sel-dialog-header"><div><p className="eyebrow">SOCIAL-EMOTIONAL LEARNING</p><h2 id="sel-dialog-title">什麼是 SEL？</h2></div><button className="icon-button" aria-label="關閉 SEL 說明" onClick={onClose}>×</button></div>
+      <p className="sel-definition">SEL 不只是情緒控制，更是成為能理解自己、理解他人，並作出適切選擇的人。</p>
+      <div className="sel-capabilities">{SEL_CAPABILITIES.map((capability, index) => <article key={capability.name} className={`sel-capability capability-${index + 1}`}><span>{index + 1}</span><h3>{capability.name}</h3><small>{capability.english}</small><p>{capability.description}</p></article>)}</div>
+    </section>
+  </div>
+}
+
 function App() {
   const [journals, setJournals] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] } })
   const [activeId, setActiveId] = useState(null)
   const [step, setStep] = useState(0)
   const [saveState, setSaveState] = useState('已儲存')
+  const [isSelDialogOpen, setIsSelDialogOpen] = useState(false)
   const active = journals.find((item) => item.journalId === activeId)
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); setSaveState('已儲存') } catch { setSaveState('儲存失敗') } }, [journals])
   const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => item.journalId === activeId ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)) }
@@ -256,11 +303,12 @@ function App() {
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習日誌</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
 
   const stepContent = [<BasicStep key="basic" journal={active} update={update} />, <QuestionStep key="question" journal={active} update={update} />, <SolutionsStep key="solutions" journal={active} update={update} />, <DiceStep key="dice" journal={active} update={update} />, <ResultsStep key="results" journal={active} />, <ReflectionsStep key="reflections" journal={active} update={update} />, <IntegrationStep key="integration" journal={active} update={update} />, <ExportStep key="export" journal={active} complete={complete} />][step]
-  return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="save-status"><i className={saveState === '已儲存' ? 'saved' : ''} />{saveState}</div><button className="exit-button" onClick={() => setActiveId(null)}>暫存離開</button></header>
+  return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions"><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><div className="save-status"><i className={saveState === '已儲存' ? 'saved' : ''} />{saveState}</div><button className="exit-button" onClick={() => setActiveId(null)}>暫存離開</button></div></header>
     <div className="editor-layout"><aside className="step-nav no-print">{STEPS.map((name, index) => <button key={name} className={step === index ? 'active' : index < step ? 'done' : ''} onClick={() => setStep(index)}><span>{index < step ? '✓' : index + 1}</span>{name}</button>)}</aside>
       <div className="editor-main"><div className="mobile-progress no-print"><span>步驟 {step + 1}／8</span><strong>{STEPS[step]}</strong><div><i style={{ width: `${((step + 1) / 8) * 100}%` }} /></div></div>{stepContent}
         <nav className="step-actions no-print"><button className="secondary" disabled={step === 0} onClick={() => setStep(step - 1)}>← 上一步</button>{step < 7 ? <button className="primary" disabled={!canProceed()} onClick={() => setStep(step + 1)}>下一步 →</button> : <button className="primary" onClick={() => { complete(); window.alert('日誌已標記為完成。') }}>完成日誌</button>}</nav>
       </div></div>
+    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}
   </main>
 }
 
