@@ -364,13 +364,16 @@ const valueOrBlank = (value) => clean(value || '') || '尚未填寫'
 function JournalPreview({ journal }) {
   const result = getCalculation(journal.dice)
   const observationReflection = getObservationReflection(journal)
-  const hexSection = (title, data, id) => <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><p>{data.imagetext}</p></div></div><p>金句：{data.judgement1}；{data.judgement2}</p><p>SEL：{data.sel1}、{data.sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
+  const hexSection = (title, data, id) => <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{data.judgement1}；{data.judgement2}</p><p>SEL：{data.sel1}、{data.sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
   return <div className="journal-preview"><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></header>
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
     <section className="print-block"><h3>擲骰與六爻</h3><table><thead><tr><th>爻位</th><th>點數</th><th>奇偶</th><th>陰陽</th></tr></thead><tbody>{LINE_NAMES.map((name, index) => { const die = journal.dice[index]; return <tr key={name}><td>第 {index + 1} 次：{name}</td><td>{die || '尚未填寫'}</td><td>{die ? die % 2 ? '奇數' : '偶數' : '—'}</td><td>{die ? die % 2 ? '陽爻' : '陰爻' : '—'}</td></tr> })}</tbody></table>{result && <p>已完成六爻。</p>}</section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
     <section className="print-block"><h3>共同整合</h3><p>共同詮釋：{valueOrBlank(journal.sharedInterpretation)}</p><p>共同解方：{valueOrBlank(journal.jointSolution)}</p><p>下一步：{valueOrBlank(journal.nextAction)}</p><p>SEL 連結：{journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}</p><p>SEL 反思：{valueOrBlank(journal.selReflection)}</p></section>
+    <section className="print-block journal-media-block"><h3>SEL 易想天開與 SEL</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
+    <section className="print-block journal-media-block"><h3>SEL 易想天開粉絲團</h3><img src={fanClubImage} alt="SEL 易想天開粉絲團資訊" /></section>
+    <section className="print-block journal-media-block"><h3>SEL 易想天開卡牌</h3><img src={cardSetImage} alt="SEL 易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" /></section>
     <footer>建立時間：{formatDate(journal.createdAt)}　最後更新：{formatDate(journal.updatedAt)}　資料版本：{journal.hexagramDataVersion}</footer>
   </div>
 }

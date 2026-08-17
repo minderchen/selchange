@@ -477,6 +477,26 @@
   font-weight:900;
 }
 
+.preview-hex .trigram-images {
+  justify-content:start;
+  margin:.45rem 0;
+}
+
+.preview-hex .trigram-images img {
+  width:42px;
+  max-height:64px;
+}
+
+.journal-media-block img {
+  display:block;
+  width:100%;
+  max-width:760px;
+  height:auto;
+  margin-top:.75rem;
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+
 @media (max-width:767px) {
   .fan-club-dialog-backdrop {
     padding:.75rem;
