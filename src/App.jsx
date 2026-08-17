@@ -180,13 +180,14 @@ function CurrentQuestion({ question }) {
 function HexagramCarryover({ calculation }) {
   if (!calculation?.original || !calculation?.comprehensive) return null
   const items = [
-    ['本卦', calculation.original],
-    [calculation.pairTitle, calculation.comprehensive],
+    ['本卦', calculation.original, calculation.originalId],
+    [calculation.pairTitle, calculation.comprehensive, calculation.comprehensiveId],
   ]
   return <div className="hexagram-carryover" aria-label="本卦與配對卦摘要">
-    {items.map(([title, data]) => <article key={title}>
+    {items.map(([title, data, id]) => <article key={title}>
       <span>{title}</span>
       <strong>第 {data.seq} 卦 · {data.hexagram}</strong>
+      <TrigramImages id={id} hexagram={data.hexagram} />
       <p>「{data.judgement1}」<br />「{data.judgement2}」</p>
     </article>)}
   </div>

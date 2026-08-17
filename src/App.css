@@ -72,6 +72,16 @@
   line-height:1.75;
 }
 
+.hexagram-carryover .trigram-images {
+  justify-content:start;
+  margin:.65rem 0;
+}
+
+.hexagram-carryover .trigram-images img {
+  width:clamp(34px,5vw,46px);
+  max-height:70px;
+}
+
 @media (max-width:767px) {
   .hexagram-carryover {
     grid-template-columns:1fr;
