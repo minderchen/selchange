@@ -60,7 +60,7 @@ const createJournal = () => {
   return {
     journalId: makeId(), schemaVersion: '1.0', hexagramDataVersion: 'Hexagram.xlsx',
     createdAt: created, updatedAt: created, activityAt: nowLocal(), status: 'draft',
-    mode: 'individual', groupName: '', members: [], questionType: 'preset', questionText: '',
+    mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '',
     preSolutions: [''], dice: [], reflections: [], observationReflection: '', sharedInterpretation: '', jointSolution: '',
     nextAction: '', selReflection: '', selTags: [],
   }
@@ -162,12 +162,13 @@ function BasicStep({ journal, update }) {
 }
 
 function QuestionStep({ journal, update }) {
+  const selectedQuestionSet = presetQuestions.find((set) => set.id === journal.questionSet) || presetQuestions[0]
   return <section className="step-section"><div className="eyebrow">Step 2 · 定下焦點</div><h2>今天想一起探索什麼？</h2>
     <fieldset className="choice-group"><legend>問題來源</legend>
       <label><input type="radio" checked={journal.questionType === 'preset'} onChange={() => update({ questionType: 'preset', questionText: '' })} /> 選擇大哉問</label>
       <label><input type="radio" checked={journal.questionType === 'custom'} onChange={() => update({ questionType: 'custom', questionText: '' })} /> 自訂問題</label>
     </fieldset>
-    {journal.questionType === 'preset' ? <label>大哉問<select value={journal.questionText} onChange={(event) => update({ questionText: event.target.value })}><option value="">請選擇一題</option>{presetQuestions.map((question) => <option key={question}>{question}</option>)}</select></label> : <label>自訂問題<textarea value={journal.questionText} rows="5" placeholder="寫下你們要探索的問題..." onChange={(event) => update({ questionText: event.target.value })} /></label>}
+    {journal.questionType === 'preset' ? <div className="stack-fields"><label>大哉問題組<select value={selectedQuestionSet?.id || ''} onChange={(event) => update({ questionSet: event.target.value, questionText: '' })}>{presetQuestions.map((set) => <option key={set.id} value={set.id}>{set.label}</option>)}</select></label><label>大哉問<select value={journal.questionText} onChange={(event) => update({ questionText: event.target.value })}><option value="">請選擇一題</option>{selectedQuestionSet?.questions.map((question) => <option key={question}>{question}</option>)}</select></label></div> : <label>自訂問題<textarea value={journal.questionText} rows="5" placeholder="寫下你們要探索的問題..." onChange={(event) => update({ questionText: event.target.value })} /></label>}
     {!clean(journal.questionText) && <p className="field-hint">請先設定一項非空白問題，才能進入下一步。</p>}
   </section>
 }
