@@ -512,9 +512,9 @@ function JournalPreview({ journal, previewRef }) {
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
-    <section className="print-block"><h3>共同整合</h3><p>共同詮釋：{valueOrBlank(journal.sharedInterpretation)}</p><p>共同解方：{valueOrBlank(journal.jointSolution)}</p><p>下一步：{valueOrBlank(journal.nextAction)}</p><p>SEL 連結：{journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}</p><p>SEL 反思：{valueOrBlank(journal.selReflection)}</p></section>
-    <section className="print-block journal-media-block"><h3>SEL 易想天開與 SEL</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
-    <section className="print-block journal-media-block"><h3>SEL 易想天開粉絲團</h3><img src={fanClubImage} alt="SEL 易想天開粉絲團資訊" /></section>
+    <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p><p>共同解方：{valueOrBlank(journal.jointSolution)}</p><p>下一步：{valueOrBlank(journal.nextAction)}</p><p>SEL 連結：{journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}</p><p>SEL 反思：{valueOrBlank(journal.selReflection)}</p></section>
+    <section className="print-block journal-media-block"><h3>SEL 易想天開與 SEL 五項能力</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
+    <section className="print-block journal-media-block"><h3>SEL 易想天開官方帳號</h3><img src={fanClubImage} alt="SEL 易想天開官方帳號" /></section>
     <section className="print-block journal-media-block"><h3>SEL 易想天開卡牌</h3><img src={cardSetImage} alt="SEL 易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" /></section>
     <footer>建立時間：{formatDate(journal.createdAt)}　最後更新：{formatDate(journal.updatedAt)}　資料版本：{journal.hexagramDataVersion}</footer>
   </div>
