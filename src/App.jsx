@@ -507,14 +507,16 @@ const valueOrBlank = (value) => clean(value || '') || '尚未填寫'
 function JournalPreview({ journal, previewRef }) {
   const result = getCalculation(journal.dice)
   const observationReflection = getObservationReflection(journal)
+  const isGroupLearning = journal.mode === 'group'
+  const memberNames = journal.members.filter(clean).join('、')
   const hexSection = (title, data, id) => <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{data.judgement1}；{data.judgement2}</p><p>SEL：{data.sel1}、{data.sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
-  return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></header>
+  return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {isGroupLearning ? '小組學習' : '個人學習'}</p>{isGroupLearning && <><p>組別名稱：{valueOrBlank(journal.groupName)}</p><p>成員：{memberNames || '尚未填寫'}</p></>}</header>
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
-    <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p><p>共同解方：{valueOrBlank(journal.jointSolution)}</p><p>下一步：{valueOrBlank(journal.nextAction)}</p><p>SEL 連結：{journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}</p><p>SEL 反思：{valueOrBlank(journal.selReflection)}</p></section>
+    <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p></section>
     <section className="print-block journal-media-block"><h3>SEL 易想天開與 SEL 五項能力</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
-    <section className="print-block journal-media-block"><h3>SEL 易想天開官方帳號</h3><img src={fanClubImage} alt="SEL 易想天開官方帳號" /></section>
+    <section className="print-block journal-media-block"><h3>SEL 易想天開官方帳號</h3><img className="fan-club-image" src={fanClubImage} alt="SEL 易想天開官方帳號" /></section>
     <section className="print-block journal-media-block"><h3>SEL 易想天開卡牌</h3><img src={cardSetImage} alt="SEL 易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" /></section>
     <footer>建立時間：{formatDate(journal.createdAt)}　最後更新：{formatDate(journal.updatedAt)}　資料版本：{journal.hexagramDataVersion}</footer>
   </div>
@@ -616,7 +618,7 @@ function FanClubDialog({ onClose }) {
   return <div className="fan-club-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
     <section className="fan-club-dialog" role="dialog" aria-modal="true" aria-labelledby="fan-club-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
       <div className="fan-club-dialog-header"><h2 id="fan-club-dialog-title">SEL易想天開官方帳號</h2><button className="icon-button" aria-label="關閉粉絲團圖片" onClick={onClose}>×</button></div>
-      <img src={fanClubImage} alt="SEL易想天開官方帳號" />
+      <img className="fan-club-image" src={fanClubImage} alt="SEL易想天開官方帳號" />
     </section>
   </div>
 }
