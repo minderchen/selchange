@@ -615,8 +615,8 @@ function FanClubDialog({ onClose }) {
   }, [onClose])
   return <div className="fan-club-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
     <section className="fan-club-dialog" role="dialog" aria-modal="true" aria-labelledby="fan-club-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
-      <div className="fan-club-dialog-header"><h2 id="fan-club-dialog-title">SEL易想天開粉絲團</h2><button className="icon-button" aria-label="關閉粉絲團圖片" onClick={onClose}>×</button></div>
-      <img src={fanClubImage} alt="SEL易想天開粉絲團" />
+      <div className="fan-club-dialog-header"><h2 id="fan-club-dialog-title">SEL易想天開官方帳號</h2><button className="icon-button" aria-label="關閉粉絲團圖片" onClick={onClose}>×</button></div>
+      <img src={fanClubImage} alt="SEL易想天開官方帳號" />
     </section>
   </div>
 }
