@@ -566,6 +566,130 @@
   font-weight:900;
 }
 
+.ai-reflection-action {
+  margin:1rem 0 1.5rem;
+}
+
+.ai-dialog-backdrop {
+  position:fixed;
+  inset:0;
+  z-index:12;
+  display:grid;
+  place-items:center;
+  padding:1.5rem;
+  background:rgba(17,36,37,.58);
+}
+
+.ai-dialog {
+  width:min(960px,100%);
+  max-height:calc(100vh - 3rem);
+  overflow:auto;
+  padding:clamp(1rem,2.5vw,1.75rem);
+  background:#fffdf9;
+  border-radius:12px;
+  box-shadow:0 24px 80px rgba(0,0,0,.28);
+}
+
+.ai-dialog-header {
+  display:flex;
+  align-items:start;
+  justify-content:space-between;
+  gap:1rem;
+  padding-bottom:1rem;
+  border-bottom:1px solid var(--line);
+}
+
+.ai-dialog-header h2 {
+  margin:0;
+  color:var(--teal);
+  font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+  font-size:clamp(1.35rem,3vw,1.8rem);
+}
+
+.ai-dialog-header .eyebrow {
+  margin-bottom:.25rem;
+}
+
+.ai-dialog-content {
+  display:grid;
+  gap:1rem;
+  padding-top:1.25rem;
+}
+
+.ai-context h3,
+.ai-prompt-panel h3 {
+  margin-bottom:.7rem;
+  color:#24393a;
+  font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+}
+
+.ai-context dl {
+  display:grid;
+  gap:.7rem;
+  margin:0;
+}
+
+.ai-context dl > div {
+  padding:.85rem 1rem;
+  background:#edf5f2;
+  border-left:4px solid var(--teal);
+}
+
+.ai-context dt {
+  margin-bottom:.25rem;
+  color:var(--teal);
+  font-size:.84rem;
+  font-weight:900;
+}
+
+.ai-context dd {
+  margin:0;
+  color:#24393a;
+  font-weight:700;
+  line-height:1.7;
+  white-space:pre-wrap;
+}
+
+.ai-prompt-panel {
+  padding:1rem;
+  background:#f6f3ed;
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+
+.ai-prompt-panel > p {
+  margin-bottom:.8rem;
+  color:var(--muted);
+  line-height:1.65;
+}
+
+.ai-prompt-text {
+  min-height:290px;
+  background:#fff;
+  font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+  font-size:.9rem;
+  line-height:1.65;
+}
+
+.ai-prompt-actions {
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:.75rem;
+  margin-top:.9rem;
+}
+
+.ai-prompt-actions-top {
+  margin:0 0 .9rem;
+}
+
+.copy-status {
+  margin:0;
+  color:var(--teal);
+  font-size:.9rem;
+  font-weight:700;
+}
+
 .preview-hex .trigram-images {
   justify-content:start;
   margin:.45rem 0;
@@ -651,5 +775,27 @@
 
   .purchase-details {
     font-size:.98rem;
+  }
+
+  .ai-dialog-backdrop {
+    padding:.75rem;
+  }
+
+  .ai-dialog {
+    max-height:calc(100vh - 1.5rem);
+    padding:1rem;
+  }
+
+  .ai-dialog-content {
+    padding-top:1rem;
+  }
+
+  .ai-prompt-panel {
+    padding:.85rem;
+  }
+
+  .ai-prompt-text {
+    min-height:260px;
+    font-size:.85rem;
   }
 }

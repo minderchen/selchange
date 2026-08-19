@@ -17,8 +17,7 @@ import './App.css'
 
 const STORAGE_KEY = 'iching-learning-journals-v1'
 const LINE_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']
-const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰建卦', '卦象結果', '觀象反思', '共同整合', '預覽與匯出']
-const SEL_OPTIONS = ['自我覺察', '自我管理', '社會覺察', '人際關係技巧', '負責任的決定']
+const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰建卦', '卦象結果', '觀象反思', 'AI解卦', '預覽與匯出']
 const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }
 const TRIGRAMS = {
   '111': { name: '天', image: heavenTrigram },
@@ -39,6 +38,70 @@ const SEL_CAPABILITIES = [
 ]
 
 const clean = (value) => value.trim()
+const buildAiReflectionPrompt = ({ question, originalName, pairName }) => `你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
+
+請根據以下資訊，回應使用者的問題：
+
+### 【本次大哉問】
+
+${question}
+
+### 【本卦】
+
+${originalName}
+
+### 【綜卦/錯卦】
+
+${pairName}
+
+請以「本卦」作為主要分析依據，運用本卦的核心思想回應使用者的「本次大哉問」。
+
+你的目的不是替使用者預測命運或直接給出唯一答案，而是運用《易經》的智慧，幫助使用者：
+
+* 看清目前的處境；
+* 察覺自己可能忽略的因素；
+* 從不同角度重新理解問題；
+* 思考可能的選擇及其後果；
+* 找到可以採取的下一步行動。
+
+如有助於深化理解，可以適度運用「綜卦」與「錯卦」，提供與本卦不同、相反或互補的觀點，但分析的核心仍應以「本卦」為主。
+
+接著，請將你的分析連結至以下 SEL 五大核心能力：
+
+### 1. 自我覺察
+
+這個卦象提醒使用者需要察覺哪些情緒、想法、價值觀、優勢、限制或內在需求？
+
+### 2. 自我管理
+
+面對目前的情境，使用者應如何管理自己的情緒、衝動、壓力、目標與行動？
+
+### 3. 社會覺察
+
+使用者需要理解哪些他人的立場、感受、需求、環境因素或更大的情境？
+
+### 4. 人際關係技巧
+
+這個情境中，使用者可以如何改善溝通、合作、傾聽、表達、協商或處理衝突？
+
+### 5. 負責任的決定
+
+綜合本卦的智慧與上述反思，使用者在做決定時應考慮哪些選項、後果、責任、價值與長期影響？
+
+### 【最後請提供】
+
+以簡潔而具有啟發性的方式整理：
+
+**易經給我的提醒：**
+用 2–3 句話說明本卦對「本次大哉問」最重要的啟示。
+
+**SEL 五力反思：**
+分別指出與本次問題最相關的 SEL 能力與反思重點。
+
+**我可以採取的下一步：**
+提出 1–3 個具體、可實行的行動建議。
+
+回答應具有啟發性、反思性與行動導向，避免宿命式、絕對化或過度肯定的預測語言。`
 const nowLocal = () => {
   const date = new Date()
   const pad = (value) => String(value).padStart(2, '0')
@@ -273,7 +336,7 @@ function SolutionsStep({ journal, update }) {
         <textarea ref={draftRef} className="solution-draft" value={draftSolution} rows="2" aria-label="請輸入一個可行的解方" onChange={(event) => setDraftSolution(event.target.value)} />
       </label>
       <button className="secondary add-solution-button" onClick={addSolution} disabled={!clean(draftSolution)}>＋ 新增解方</button>
-      <h3>已經想到的解方如下: </h3>
+      <h3>已經想到的解方如下(可以直接編輯): </h3>
       <textarea ref={summaryRef} className="solution-summary" value={summaryText} rows="9" aria-label="已經想到的解方列表(可以直接編輯)" onChange={(event) => updateFromSummary(event.target.value)} />
       
     </div>
@@ -390,14 +453,54 @@ function ReflectionsStep({ journal, update }) {
 }
 
 function IntegrationStep({ journal, update }) {
-  const toggleTag = (tag) => update({ selTags: journal.selTags.includes(tag) ? journal.selTags.filter((item) => item !== tag) : [...journal.selTags, tag] })
-  return <section className="step-section"><div className="eyebrow">Step 7 · 形成下一步</div><h2>共同整合</h2><CurrentQuestion question={journal.questionText} /><div className="stack-fields">
-    <label>共同詮釋<textarea rows="4" value={journal.sharedInterpretation} placeholder="本卦與綜卦/錯卦如何幫助我們理解這個問題？" onChange={(event) => update({ sharedInterpretation: event.target.value })} /></label>
-    <label>共同解方<textarea rows="4" value={journal.jointSolution} placeholder="根據新的理解，我們決定怎麼做？" onChange={(event) => update({ jointSolution: event.target.value })} /></label>
-    <label>下一步<textarea rows="3" value={journal.nextAction} placeholder="具體行動、負責人或期限..." onChange={(event) => update({ nextAction: event.target.value })} /></label>
-    <fieldset className="tag-selector"><legend>連結 SEL 五大核心能力</legend>{SEL_OPTIONS.map((tag) => <label key={tag}><input type="checkbox" checked={journal.selTags.includes(tag)} onChange={() => toggleTag(tag)} /> {tag}</label>)}</fieldset>
-    <label>SEL 反思<textarea rows="3" value={journal.selReflection} placeholder="這些能力如何支持我們的下一步？" onChange={(event) => update({ selReflection: event.target.value })} /></label>
-  </div></section>
+  const calculation = getCalculation(journal.dice)
+  const [isAiReflectionOpen, setIsAiReflectionOpen] = useState(false)
+  const aiReflectionButtonRef = useRef(null)
+  const closeAiReflection = () => {
+    setIsAiReflectionOpen(false)
+    window.setTimeout(() => aiReflectionButtonRef.current?.focus(), 0)
+  }
+  return <section className="step-section"><div className="eyebrow">Step 7 · AI 智慧解卦與 SEL 反思</div> <CurrentQuestion question={journal.questionText} /><div className="ai-reflection-action"><button ref={aiReflectionButtonRef} className="secondary" type="button" aria-haspopup="dialog" onClick={() => setIsAiReflectionOpen(true)}>AI 智慧解卦與 SEL 反思</button></div><div className="stack-fields">
+    <label>請把 AI 的回覆貼在下面，需要的話可以修改。<textarea rows="4" value={journal.sharedInterpretation} placeholder="AI 的回覆" onChange={(event) => update({ sharedInterpretation: event.target.value })} /></label>
+  </div>{isAiReflectionOpen && <AiReflectionDialog journal={journal} calculation={calculation} onClose={closeAiReflection} />}</section>
+}
+
+function AiReflectionDialog({ journal, calculation, onClose }) {
+  const closeButtonRef = useRef(null)
+  const [copyStatus, setCopyStatus] = useState('')
+  const question = clean(journal.questionText) || '尚未填寫本次大哉問'
+  const originalName = calculation?.original ? `第 ${calculation.original.seq} 卦 · ${calculation.original.hexagram}` : '尚未完成六次擲骰'
+  const pairName = calculation?.comprehensive ? `${calculation.pairTitle} · 第 ${calculation.comprehensive.seq} 卦 · ${calculation.comprehensive.hexagram}` : '尚未完成六次擲骰'
+  const prompt = buildAiReflectionPrompt({ question, originalName, pairName })
+
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  const copyPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(prompt)
+      setCopyStatus('AI 解讀提示詞已複製到剪貼簿。')
+    } catch {
+      setCopyStatus('無法自動複製，請選取下方文字後手動複製。')
+    }
+  }
+
+  return <div className="ai-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="ai-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="ai-dialog-header"><div><p className="eyebrow">Step 7 · 智慧引導</p><h2 id="ai-dialog-title">AI 智慧解卦與 SEL 反思</h2></div><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉 AI 智慧解卦與 SEL 反思" onClick={onClose}>×</button></header>
+      <div className="ai-dialog-content">
+        <section className="ai-context" aria-labelledby="ai-context-title"><h3 id="ai-context-title">本次解讀資訊</h3><dl><div><dt>本次大哉問</dt><dd>{question}</dd></div><div><dt>本卦</dt><dd>{originalName}</dd></div><div><dt>綜卦／錯卦</dt><dd>{pairName}</dd></div></dl></section>
+        {(!clean(journal.questionText) || !calculation) && <p className="notice error">請完成本次大哉問與六次擲骰後，再取得包含完整卦象資訊的 AI 解讀提示詞。</p>}
+        <section className="ai-prompt-panel" aria-labelledby="ai-prompt-title"><h3 id="ai-prompt-title">AI 解讀提示詞</h3><p>已將本次問題與卦象資料帶入。複製後可貼到您使用的 AI 工具，取得以本卦為主、連結 SEL 五大核心能力的反思與行動建議。</p><div className="ai-prompt-actions ai-prompt-actions-top"><button className="primary" type="button" onClick={copyPrompt}>複製 AI 提示詞</button></div><textarea className="ai-prompt-text" value={prompt} readOnly rows="18" aria-label="AI 解讀提示詞內容" /><div className="ai-prompt-actions"><button className="primary" type="button" onClick={copyPrompt}>複製 AI 提示詞</button><p className="copy-status" role="status" aria-live="polite">{copyStatus}</p></div></section>
+      </div>
+    </section>
+  </div>
 }
 
 const valueOrBlank = (value) => clean(value || '') || '尚未填寫'
@@ -407,7 +510,6 @@ function JournalPreview({ journal, previewRef }) {
   const hexSection = (title, data, id) => <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{data.judgement1}；{data.judgement2}</p><p>SEL：{data.sel1}、{data.sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
   return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></header>
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
-    <section className="print-block"><h3>擲骰與六爻</h3><table><thead><tr><th>爻位</th><th>點數</th><th>奇偶</th><th>陰陽</th></tr></thead><tbody>{LINE_NAMES.map((name, index) => { const die = journal.dice[index]; return <tr key={name}><td>第 {index + 1} 次：{name}</td><td>{die || '尚未填寫'}</td><td>{die ? die % 2 ? '奇數' : '偶數' : '—'}</td><td>{die ? die % 2 ? '陽爻' : '陰爻' : '—'}</td></tr> })}</tbody></table>{result && <p>已完成六爻。</p>}</section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
     <section className="print-block"><h3>共同整合</h3><p>共同詮釋：{valueOrBlank(journal.sharedInterpretation)}</p><p>共同解方：{valueOrBlank(journal.jointSolution)}</p><p>下一步：{valueOrBlank(journal.nextAction)}</p><p>SEL 連結：{journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}</p><p>SEL 反思：{valueOrBlank(journal.selReflection)}</p></section>
@@ -428,20 +530,6 @@ function ExportStep({ journal, complete }) {
   const closePurchase = () => {
     setIsPurchaseOpen(false)
     window.setTimeout(() => purchaseButtonRef.current?.focus(), 0)
-  }
-  const copyText = async () => {
-    const result = getCalculation(journal.dice)
-    const observationReflection = getObservationReflection(journal)
-    const hexagramText = (title, data) => data
-      ? `${title}：\n第 ${data.seq} 卦・${data.hexagram}\n卦象：${data.imagetext}\n金句：${data.judgement1}；${data.judgement2}\nSEL：${data.sel1}、${data.sel2}\n大象辭：${data.commentary}`
-      : `${title}：\n尚未完成六爻`
-    const diceText = LINE_NAMES.map((name, index) => {
-      const die = journal.dice[index]
-      return `${index + 1}. ${name}：${die || '尚未填寫'}${die ? ` 點（${die % 2 ? '奇數・陽爻・1' : '偶數・陰爻・0'}）` : ''}`
-    }).join('\n')
-    const text = `SEL 易想天開｜學習日誌\n活動時間：${formatDate(journal.activityAt)}\n模式：${journal.mode === 'group' ? '小組學習' : '個人學習'}\n組別：${valueOrBlank(journal.groupName)}\n成員：${journal.members.filter(clean).join('、') || '尚未填寫'}\n\n問題：\n${valueOrBlank(journal.questionText)}\n\n卜卦前解方：\n${journal.preSolutions.filter(clean).map((item, index) => `${index + 1}. ${item}`).join('\n') || '尚未填寫'}\n\n擲骰與六爻：\n${diceText}\n\n${hexagramText('本卦', result?.original)}\n\n${hexagramText('綜卦', result?.comprehensive)}\n\n觀象反思：\n${valueOrBlank(observationReflection)}\n\n共同整合：\n共同詮釋：${valueOrBlank(journal.sharedInterpretation)}\n共同解方：${valueOrBlank(journal.jointSolution)}\n下一步：${valueOrBlank(journal.nextAction)}\nSEL 連結：${journal.selTags.length ? journal.selTags.join('、') : '尚未填寫'}\nSEL 反思：${valueOrBlank(journal.selReflection)}\n\n建立時間：${formatDate(journal.createdAt)}\n最後更新：${formatDate(journal.updatedAt)}\n資料版本：${journal.hexagramDataVersion}`
-    await navigator.clipboard.writeText(text)
-    window.alert('已複製學習日誌摘要。')
   }
   const downloadPdf = async () => {
     const preview = previewRef.current
@@ -492,7 +580,7 @@ function ExportStep({ journal, complete }) {
     }
   }
   return <section className="step-section export-step"><div className="eyebrow">Step 8 · 收藏與分享</div><h2>預覽完整學習日誌</h2><p className="helper">選擇「列印／另存 PDF」後，可在瀏覽器列印視窗選擇另存為 PDF。未填欄位會標示為「尚未填寫」。</p>
-    <div className="export-actions no-print"><button className="primary" onClick={downloadPdf} disabled={isPdfGenerating}>{isPdfGenerating ? '正在產生 PDF…' : '下載 PDF'}</button><button className="secondary" onClick={() => { complete(); window.print() }}>列印／另存 PDF</button><button className="secondary" onClick={copyText}>複製文字摘要</button><button className="secondary fan-club-button" onClick={() => setIsFanClubOpen(true)}>SEL易想天開粉絲團</button><button ref={purchaseButtonRef} className="secondary purchase-button" onClick={() => setIsPurchaseOpen(true)}>購買SEL易想天開卡牌</button></div>{pdfError && <p className="notice error no-print">{pdfError}</p>}{isFanClubOpen && <FanClubDialog onClose={() => setIsFanClubOpen(false)} />}{isPurchaseOpen && <CardPurchaseDialog onClose={closePurchase} />}<JournalPreview journal={journal} previewRef={previewRef} />
+    <div className="export-actions no-print"><button className="primary" onClick={downloadPdf} disabled={isPdfGenerating}>{isPdfGenerating ? '正在產生 PDF…' : '下載 PDF'}</button><button className="secondary" onClick={() => { complete(); window.print() }}>列印／另存 PDF</button><button className="secondary fan-club-button" onClick={() => setIsFanClubOpen(true)}>SEL易想天開粉絲團</button><button ref={purchaseButtonRef} className="secondary purchase-button" onClick={() => setIsPurchaseOpen(true)}>購買SEL易想天開卡牌</button></div>{pdfError && <p className="notice error no-print">{pdfError}</p>}{isFanClubOpen && <FanClubDialog onClose={() => setIsFanClubOpen(false)} />}{isPurchaseOpen && <CardPurchaseDialog onClose={closePurchase} />}<JournalPreview journal={journal} previewRef={previewRef} />
   </section>
 }
 
