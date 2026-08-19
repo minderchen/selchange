@@ -163,19 +163,58 @@ function BasicStep({ journal, update }) {
 
 function QuestionStep({ journal, update }) {
   const selectedQuestionSet = presetQuestions.find((set) => set.id === journal.questionSet) || presetQuestions[0]
+  const [isQuestionPickerOpen, setIsQuestionPickerOpen] = useState(false)
+  const questionPickerButtonRef = useRef(null)
+
+  const closeQuestionPicker = () => {
+    setIsQuestionPickerOpen(false)
+    window.setTimeout(() => questionPickerButtonRef.current?.focus(), 0)
+  }
+
+  const selectQuestion = (question) => {
+    update({ questionText: question })
+    closeQuestionPicker()
+  }
+
   return <section className="step-section"><div className="eyebrow">Step 2 · 定下焦點</div><h2>今天想一起探索什麼？</h2>
     <fieldset className="choice-group"><legend>問題來源</legend>
       <label><input type="radio" checked={journal.questionType === 'preset'} onChange={() => update({ questionType: 'preset', questionText: '' })} /> 選擇大哉問</label>
       <label><input type="radio" checked={journal.questionType === 'custom'} onChange={() => update({ questionType: 'custom', questionText: '' })} /> 自訂問題</label>
     </fieldset>
-    {journal.questionType === 'preset' ? <div className="stack-fields"><label>大哉問題組<select value={selectedQuestionSet?.id || ''} onChange={(event) => update({ questionSet: event.target.value, questionText: '' })}>{presetQuestions.map((set) => <option key={set.id} value={set.id}>{set.label}</option>)}</select></label><label>大哉問<select value={journal.questionText} onChange={(event) => update({ questionText: event.target.value })}><option value="">請選擇一題</option>{selectedQuestionSet?.questions.map((question) => <option key={question}>{question}</option>)}</select></label></div> : <label>自訂問題<textarea value={journal.questionText} rows="5" placeholder="寫下你們要探索的問題..." onChange={(event) => update({ questionText: event.target.value })} /></label>}
+    {journal.questionType === 'preset' ? <div className="stack-fields"><label>大哉問題組<select value={selectedQuestionSet?.id || ''} onChange={(event) => { setIsQuestionPickerOpen(false); update({ questionSet: event.target.value, questionText: '' }) }}>{presetQuestions.map((set) => <option key={set.id} value={set.id}>{set.label}</option>)}</select></label><div className="question-picker-field" role="group" aria-labelledby="question-picker-label"><span id="question-picker-label">大哉問</span><button ref={questionPickerButtonRef} className="secondary question-picker-button" type="button" aria-haspopup="dialog" onClick={() => setIsQuestionPickerOpen(true)}>選擇題目</button></div><CurrentQuestion question={journal.questionText} label="已選大哉問" /></div> : <label>自訂問題<textarea value={journal.questionText} rows="5" placeholder="寫下你們要探索的問題..." onChange={(event) => update({ questionText: event.target.value })} /></label>}
     {!clean(journal.questionText) && <p className="field-hint">請先設定一項非空白問題，才能進入下一步。</p>}
+    {isQuestionPickerOpen && <QuestionPickerDialog questionSet={selectedQuestionSet} onClose={closeQuestionPicker} onSelect={selectQuestion} />}
   </section>
 }
 
-function CurrentQuestion({ question }) {
+function QuestionPickerDialog({ questionSet, onClose, onSelect }) {
+  const closeButtonRef = useRef(null)
+
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  return <div className="question-picker-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="question-picker-dialog" role="dialog" aria-modal="true" aria-labelledby="question-picker-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="question-picker-dialog-header">
+        <div><p className="eyebrow">大哉問題組</p><h2 id="question-picker-dialog-title">{questionSet.label}</h2></div>
+        <button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉題目選擇" onClick={onClose}>×</button>
+      </header>
+      <ol className="question-picker-list">
+        {questionSet.questions.map((question, index) => <li key={question}><button type="button" onClick={() => onSelect(question)}><span aria-hidden="true">{index + 1}</span><span>{question}</span></button></li>)}
+      </ol>
+    </section>
+  </div>
+}
+
+function CurrentQuestion({ question, label = '本次大哉問' }) {
   if (!clean(question)) return null
-  return <aside className="current-question"><span>本次大哉問</span><p>{question}</p></aside>
+  return <aside className="current-question"><span>{label}</span><p>{question}</p></aside>
 }
 
 function HexagramCarryover({ calculation }) {
@@ -230,12 +269,13 @@ function SolutionsStep({ journal, update }) {
   return <section className="step-section"><div className="eyebrow">Step 3 · 先想想看</div><h2>卜卦前解方</h2><p className="helper">記下此刻想到的可行解方，稍後再和卦象帶來的啟發比較。</p>
     <CurrentQuestion question={journal.questionText} />
     <div className="solution-builder">
-      <h3>已經想到的解方如下: </h3>
-      <textarea ref={summaryRef} className="solution-summary" value={summaryText} rows="9" aria-label="已經想到的解方列表" onChange={(event) => updateFromSummary(event.target.value)} />
       <label className="solution-draft-label">請輸入一個可行的解方
-        <textarea ref={draftRef} className="solution-draft" value={draftSolution} rows="3" aria-label="請輸入一個可行的解方" onChange={(event) => setDraftSolution(event.target.value)} />
+        <textarea ref={draftRef} className="solution-draft" value={draftSolution} rows="2" aria-label="請輸入一個可行的解方" onChange={(event) => setDraftSolution(event.target.value)} />
       </label>
       <button className="secondary add-solution-button" onClick={addSolution} disabled={!clean(draftSolution)}>＋ 新增解方</button>
+      <h3>已經想到的解方如下: </h3>
+      <textarea ref={summaryRef} className="solution-summary" value={summaryText} rows="9" aria-label="已經想到的解方列表(可以直接編輯)" onChange={(event) => updateFromSummary(event.target.value)} />
+      
     </div>
   </section>
 }
@@ -361,11 +401,11 @@ function IntegrationStep({ journal, update }) {
 }
 
 const valueOrBlank = (value) => clean(value || '') || '尚未填寫'
-function JournalPreview({ journal }) {
+function JournalPreview({ journal, previewRef }) {
   const result = getCalculation(journal.dice)
   const observationReflection = getObservationReflection(journal)
   const hexSection = (title, data, id) => <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{data.judgement1}；{data.judgement2}</p><p>SEL：{data.sel1}、{data.sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
-  return <div className="journal-preview"><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></header>
+  return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></header>
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
     <section className="print-block"><h3>擲骰與六爻</h3><table><thead><tr><th>爻位</th><th>點數</th><th>奇偶</th><th>陰陽</th></tr></thead><tbody>{LINE_NAMES.map((name, index) => { const die = journal.dice[index]; return <tr key={name}><td>第 {index + 1} 次：{name}</td><td>{die || '尚未填寫'}</td><td>{die ? die % 2 ? '奇數' : '偶數' : '—'}</td><td>{die ? die % 2 ? '陽爻' : '陰爻' : '—'}</td></tr> })}</tbody></table>{result && <p>已完成六爻。</p>}</section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
@@ -381,7 +421,10 @@ function JournalPreview({ journal }) {
 function ExportStep({ journal, complete }) {
   const [isFanClubOpen, setIsFanClubOpen] = useState(false)
   const [isPurchaseOpen, setIsPurchaseOpen] = useState(false)
+  const [isPdfGenerating, setIsPdfGenerating] = useState(false)
+  const [pdfError, setPdfError] = useState('')
   const purchaseButtonRef = useRef(null)
+  const previewRef = useRef(null)
   const closePurchase = () => {
     setIsPurchaseOpen(false)
     window.setTimeout(() => purchaseButtonRef.current?.focus(), 0)
@@ -400,8 +443,56 @@ function ExportStep({ journal, complete }) {
     await navigator.clipboard.writeText(text)
     window.alert('已複製學習日誌摘要。')
   }
+  const downloadPdf = async () => {
+    const preview = previewRef.current
+    if (!preview || isPdfGenerating) return
+    setIsPdfGenerating(true)
+    setPdfError('')
+    try {
+      await document.fonts?.ready
+      await Promise.all(Array.from(preview.querySelectorAll('img')).map(async (image) => {
+        if (!image.complete) await new Promise((resolve) => {
+          image.addEventListener('load', resolve, { once: true })
+          image.addEventListener('error', resolve, { once: true })
+        })
+        await image.decode?.().catch(() => {})
+      }))
+      const capturePreview = window.html2canvas
+      const PdfDocument = window.jspdf?.jsPDF
+      if (!capturePreview || !PdfDocument) throw new Error('PDF libraries are unavailable')
+      const canvas = await capturePreview(preview, {
+        backgroundColor: '#ffffff',
+        logging: false,
+        scale: Math.min(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+        windowWidth: preview.scrollWidth,
+      })
+      const pdf = new PdfDocument({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+      const margin = 10
+      const pageWidth = pdf.internal.pageSize.getWidth() - margin * 2
+      const pageHeight = pdf.internal.pageSize.getHeight() - margin * 2
+      const pageHeightPx = Math.floor((pageHeight * canvas.width) / pageWidth)
+      for (let offset = 0; offset < canvas.height; offset += pageHeightPx) {
+        const sliceHeight = Math.min(pageHeightPx, canvas.height - offset)
+        const pageCanvas = document.createElement('canvas')
+        pageCanvas.width = canvas.width
+        pageCanvas.height = sliceHeight
+        const context = pageCanvas.getContext('2d')
+        context.fillStyle = '#ffffff'
+        context.fillRect(0, 0, pageCanvas.width, pageCanvas.height)
+        context.drawImage(canvas, 0, offset, canvas.width, sliceHeight, 0, 0, pageCanvas.width, sliceHeight)
+        if (offset > 0) pdf.addPage()
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageWidth, (sliceHeight * pageWidth) / canvas.width, undefined, 'FAST')
+      }
+      pdf.save(`SEL易想天開學習日誌-${new Date().toISOString().slice(0, 10)}.pdf`)
+    } catch {
+      setPdfError('PDF 產生失敗，請確認裝置有足夠可用記憶體後再試一次。')
+    } finally {
+      setIsPdfGenerating(false)
+    }
+  }
   return <section className="step-section export-step"><div className="eyebrow">Step 8 · 收藏與分享</div><h2>預覽完整學習日誌</h2><p className="helper">選擇「列印／另存 PDF」後，可在瀏覽器列印視窗選擇另存為 PDF。未填欄位會標示為「尚未填寫」。</p>
-    <div className="export-actions no-print"><button className="primary" onClick={() => { complete(); window.print() }}>列印／另存 PDF</button><button className="secondary" onClick={copyText}>複製文字摘要</button><button className="secondary fan-club-button" onClick={() => setIsFanClubOpen(true)}>SEL易想天開粉絲團</button><button ref={purchaseButtonRef} className="secondary purchase-button" onClick={() => setIsPurchaseOpen(true)}>購買SEL易想天開卡牌</button></div>{isFanClubOpen && <FanClubDialog onClose={() => setIsFanClubOpen(false)} />}{isPurchaseOpen && <CardPurchaseDialog onClose={closePurchase} />}<JournalPreview journal={journal} />
+    <div className="export-actions no-print"><button className="primary" onClick={downloadPdf} disabled={isPdfGenerating}>{isPdfGenerating ? '正在產生 PDF…' : '下載 PDF'}</button><button className="secondary" onClick={() => { complete(); window.print() }}>列印／另存 PDF</button><button className="secondary" onClick={copyText}>複製文字摘要</button><button className="secondary fan-club-button" onClick={() => setIsFanClubOpen(true)}>SEL易想天開粉絲團</button><button ref={purchaseButtonRef} className="secondary purchase-button" onClick={() => setIsPurchaseOpen(true)}>購買SEL易想天開卡牌</button></div>{pdfError && <p className="notice error no-print">{pdfError}</p>}{isFanClubOpen && <FanClubDialog onClose={() => setIsFanClubOpen(false)} />}{isPurchaseOpen && <CardPurchaseDialog onClose={closePurchase} />}<JournalPreview journal={journal} previewRef={previewRef} />
   </section>
 }
 
