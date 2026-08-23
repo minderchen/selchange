@@ -2,6 +2,10 @@
 
 React + Vite app for the SEL I Ching learning journal.
 
+## User Guide
+
+繁體中文操作說明請見 [使用指南](使用指南.md)。
+
 ## Deploy To GitHub Pages
 
 This project is configured to deploy with gh-pages.
