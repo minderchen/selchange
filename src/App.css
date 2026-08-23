@@ -892,3 +892,49 @@
     font-size:.85rem;
   }
 }
+
+.user-guide-dialog {
+  width:min(880px,100%);
+}
+
+.user-guide-content {
+  display:grid;
+  gap:1.3rem;
+  padding-top:1.3rem;
+}
+
+.user-guide-intro {
+  margin:0;
+  color:#263b3c;
+  font-weight:700;
+  line-height:1.75;
+}
+
+.user-guide-section {
+  padding-top:1rem;
+  border-top:1px solid var(--line);
+}
+
+.user-guide-section h3 {
+  margin-bottom:.65rem;
+  color:var(--teal);
+  font-size:1.1rem;
+}
+
+.user-guide-section ol {
+  display:grid;
+  gap:.45rem;
+  margin:0;
+  padding-left:1.35rem;
+}
+
+.user-guide-section li {
+  line-height:1.7;
+}
+
+@media (max-width:767px) {
+  .user-guide-content {
+    gap:1rem;
+    padding-top:1rem;
+  }
+}

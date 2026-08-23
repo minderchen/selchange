@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import hexagrams from './data/hexagrams.json'
 import presetQuestions from './data/preset-questions.json'
+import userGuideMarkdown from '../使用指南.md?raw'
 import lineQrCode from './assets/Line.jpg'
 import facebookQrCode from './assets/Facebook.jpg'
 import logoImage from './assets/SEL-Change_Logo.jpg'
@@ -37,6 +38,13 @@ const SEL_CAPABILITIES = [
   { name: '人際關係技巧', english: 'Relationship Skills', description: '溝通、合作、協商、處理衝突與建立信任。' },
   { name: '負責任的決策', english: 'Responsible Decision-Making', description: '整合自我、他人與情境，評估後果，作出兼顧長期影響的選擇。' },
 ]
+
+const [userGuideIntro, ...userGuideSectionBlocks] = userGuideMarkdown.trim().split(/\r?\n(?=## )/)
+const USER_GUIDE_INTRO = userGuideIntro.split(/\r?\n/).filter((line) => !line.startsWith('# ')).join(' ').trim()
+const USER_GUIDE_SECTIONS = userGuideSectionBlocks.map((block) => {
+  const [title, ...lines] = block.replace(/^## /, '').split(/\r?\n/)
+  return { title, items: lines.filter((line) => /^\d+\. /.test(line)).map((line) => line.replace(/^\d+\. /, '')) }
+})
 
 const clean = (value) => value.trim()
 const buildAiReflectionPrompt = ({ question, originalName, pairName }) => `你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
@@ -663,12 +671,31 @@ function SelDialog({ onClose }) {
   </div>
 }
 
+function UserGuideDialog({ onClose }) {
+  const closeButtonRef = useRef(null)
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+  return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="sel-dialog user-guide-dialog" role="dialog" aria-modal="true" aria-labelledby="user-guide-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="sel-dialog-header"><div><p className="eyebrow">使用指南</p><h2 id="user-guide-dialog-title">SEL 易想天開學習日誌使用指南</h2></div><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉使用指南" onClick={onClose}>×</button></header>
+      <div className="user-guide-content"><p className="user-guide-intro">{USER_GUIDE_INTRO}</p>{USER_GUIDE_SECTIONS.map((section) => <section className="user-guide-section" key={section.title}><h3>{section.title}</h3><ol>{section.items.map((item) => <li key={item}>{item}</li>)}</ol></section>)}</div>
+    </section>
+  </div>
+}
+
 function App() {
   const [journals, setJournals] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] } })
   const [activeId, setActiveId] = useState(null)
   const [step, setStep] = useState(0)
   const [saveState, setSaveState] = useState('已儲存')
   const [isSelDialogOpen, setIsSelDialogOpen] = useState(false)
+  const [isUserGuideOpen, setIsUserGuideOpen] = useState(false)
   const active = journals.find((item) => item.journalId === activeId)
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); setSaveState('已儲存') } catch { setSaveState('儲存失敗') } }, [journals])
   const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => item.journalId === activeId ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)) }
@@ -686,12 +713,12 @@ function App() {
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
 
   const stepContent = [<BasicStep key="basic" journal={active} update={update} />, <QuestionStep key="question" journal={active} update={update} />, <SolutionsStep key="solutions" journal={active} update={update} />, <DiceStep key="dice" journal={active} update={update} />, <ResultsStep key="results" journal={active} />, <ReflectionsStep key="reflections" journal={active} update={update} />, <IntegrationStep key="integration" journal={active} update={update} />, <ExportStep key="export" journal={active} complete={complete} />][step]
-  return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions"><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><div className="save-status"><i className={saveState === '已儲存' ? 'saved' : ''} />{saveState}</div><button className="exit-button" onClick={() => setActiveId(null)}>暫存離開</button></div></header>
+  return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><div className="save-status"><i className={saveState === '已儲存' ? 'saved' : ''} />{saveState}</div><button className="exit-button" onClick={() => setActiveId(null)}>暫存離開</button></div></header>
     <div className="editor-layout"><aside className="step-nav no-print">{STEPS.map((name, index) => <button key={name} className={step === index ? 'active' : index < step ? 'done' : ''} onClick={() => setStep(index)}><span>{index < step ? '✓' : index + 1}</span>{name}</button>)}</aside>
       <div className="editor-main"><div className="mobile-progress no-print"><span>步驟 {step + 1}／8</span><strong>{STEPS[step]}</strong><div><i style={{ width: `${((step + 1) / 8) * 100}%` }} /></div></div>{stepContent}
         <nav className="step-actions no-print"><button className="secondary" disabled={step === 0} onClick={() => setStep(step - 1)}>← 上一步</button>{step < 7 ? <button className="primary" disabled={!canProceed()} onClick={() => setStep(step + 1)}>下一步 →</button> : <button className="primary" onClick={() => { complete(); window.alert('日誌已標記為完成。') }}>完成日誌</button>}</nav>
       </div></div>
-    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}
+    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}
   </main>
 }
 
