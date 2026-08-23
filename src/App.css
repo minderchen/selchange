@@ -122,22 +122,80 @@
   font-size:1.35rem;
 }
 
-.fan-club-image {
-  display:block;
-  width:85px;
-  max-width:100%;
-  height:auto;
+.official-account-links {
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:2.25rem;
+  margin-top:1.25rem;
+}
+
+.official-account-intro {
+  grid-column:1 / -1;
+  margin:0;
+  color:#24393a;
+  font-weight:700;
+  line-height:1.7;
+}
+
+.official-account {
+  display:grid;
+  justify-items:center;
+  gap:.9rem;
+  padding:1rem;
+  text-align:center;
+  background:#f6f3ed;
+  border:1px solid var(--line);
   border-radius:8px;
+}
+
+.official-account-qr {
+  display:block;
+  width:min(100%,180px);
+}
+
+.official-account-qr img {
+  display:block;
+  width:100%;
+  height:auto;
+  border:1px solid #bfc7c2;
+  border-radius:6px;
+}
+
+.official-account-qr:hover img {
+  border-color:var(--teal);
+  box-shadow:0 0 0 3px rgba(13,110,115,.15);
+}
+
+.official-account-details h4 {
+  margin:0 0 .35rem;
+  color:var(--teal);
+  font-family:"Noto Sans TC","Microsoft JhengHei","PingFang TC",sans-serif;
+  font-size:1rem;
+}
+
+.official-account-url {
+  color:var(--teal);
+  font-weight:800;
+  line-height:1.6;
+  overflow-wrap:anywhere;
 }
 
 .manual-dice-entry {
   display:grid;
-  grid-template-columns:72px minmax(0,1fr);
+  grid-template-columns:minmax(0,1fr) 130px auto;
+  align-items:center;
   gap:.55rem;
   margin-top:.65rem;
 }
 
-.manual-dice-entry input {
+.manual-dice-entry > span {
+  color:var(--muted);
+  font-size:.88rem;
+  font-weight:700;
+  line-height:1.45;
+}
+
+.manual-dice-entry select {
   min-width:0;
   text-align:center;
 }
@@ -711,12 +769,25 @@
   border-radius:8px;
 }
 
-.journal-media-block .fan-club-image {
-  width:85px;
-  max-width:100%;
+.journal-media-block .official-account-links {
+  max-width:760px;
+}
+
+.journal-media-block .official-account-qr img {
+  width:100%;
+  max-width:none;
+  margin:0;
 }
 
 @media (max-width:767px) {
+  .manual-dice-entry {
+    grid-template-columns:130px auto;
+  }
+
+  .manual-dice-entry > span {
+    grid-column:1 / -1;
+  }
+
   .fan-club-dialog-backdrop {
     padding:.75rem;
   }
@@ -724,6 +795,22 @@
   .fan-club-dialog {
     max-height:calc(100vh - 1.5rem);
     padding:.75rem;
+  }
+
+  .official-account-links {
+    grid-template-columns:1fr;
+    gap:1.25rem;
+  }
+
+  .official-account {
+    grid-template-columns:130px minmax(0,1fr);
+    align-items:center;
+    justify-items:start;
+    text-align:left;
+  }
+
+  .official-account-qr {
+    width:130px;
   }
 
   .solution-summary {

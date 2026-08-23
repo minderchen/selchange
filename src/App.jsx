@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import hexagrams from './data/hexagrams.json'
 import presetQuestions from './data/preset-questions.json'
-import fanClubImage from './assets/SEL-Change-FanClub.png'
+import lineQrCode from './assets/Line.jpg'
+import facebookQrCode from './assets/Facebook.jpg'
 import logoImage from './assets/SEL-Change_Logo.jpg'
 import selSlideImage from './assets/SEL-Change_Slide.jpg'
 import cardSetImage from './assets/SEL-Change-Card-Set.jpg'
@@ -17,7 +18,7 @@ import './App.css'
 
 const STORAGE_KEY = 'iching-learning-journals-v1'
 const LINE_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']
-const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰建卦', '卦象結果', '觀象反思', 'AI解卦', '預覽與匯出']
+const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰起卦', '卦象結果', '觀象反思', 'AI解卦與行動', '預覽與匯出']
 const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }
 const TRIGRAMS = {
   '111': { name: '天', image: heavenTrigram },
@@ -125,7 +126,7 @@ const createJournal = () => {
     createdAt: created, updatedAt: created, activityAt: nowLocal(), status: 'draft',
     mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '',
     preSolutions: [''], dice: [], reflections: [], observationReflection: '', sharedInterpretation: '', jointSolution: '',
-    nextAction: '', selReflection: '', selTags: [],
+    nextAction: '', nextActionSummary: '', selReflection: '', selTags: [],
   }
 }
 
@@ -208,7 +209,7 @@ function Card({ title, data, id }) {
 function BasicStep({ journal, update }) {
   const memberText = journal.members.filter(clean).join('、')
   return <section className="step-section">
-    <div className="eyebrow">Step 1 · 由這次活動開始</div><h2>建立學習日誌</h2>
+    <div className="eyebrow">第 1 步，共 8 步：由這次活動開始</div><h2>建立學習日誌</h2>
     <p className="helper">資料僅儲存在此瀏覽器。共用裝置使用後，請記得匯出或清除資料。</p>
     <fieldset className="choice-group"><legend>活動模式</legend>
       <label><input type="radio" checked={journal.mode === 'individual'} onChange={() => update({ mode: 'individual', members: [] })} /> 個人學習</label>
@@ -239,7 +240,7 @@ function QuestionStep({ journal, update }) {
     closeQuestionPicker()
   }
 
-  return <section className="step-section"><div className="eyebrow">Step 2 · 定下焦點</div><h2>今天想一起探索什麼？</h2>
+  return <section className="step-section"><div className="eyebrow">第 2 步，共 8 步：設定問題</div><h2>今天想一起探索什麼？</h2>
     <fieldset className="choice-group"><legend>問題來源</legend>
       <label><input type="radio" checked={journal.questionType === 'preset'} onChange={() => update({ questionType: 'preset', questionText: '' })} /> 選擇大哉問</label>
       <label><input type="radio" checked={journal.questionType === 'custom'} onChange={() => update({ questionType: 'custom', questionText: '' })} /> 自訂問題</label>
@@ -278,6 +279,14 @@ function QuestionPickerDialog({ questionSet, onClose, onSelect }) {
 function CurrentQuestion({ question, label = '本次大哉問' }) {
   if (!clean(question)) return null
   return <aside className="current-question"><span>{label}</span><p>{question}</p></aside>
+}
+
+function OfficialAccountLinks() {
+  const accounts = [
+    { name: '「SEL易想天開」Line官方帳號', url: 'https://lin.ee/Py3z2Uf', image: lineQrCode, alt: '「SEL易想天開」Line官方帳號 QR code' },
+    { name: '臉書粉專', url: 'https://www.facebook.com/SEL.yijingboardgames/', image: facebookQrCode, alt: 'SEL易想天開臉書粉專 QR code' },
+  ]
+  return <div className="official-account-links"><p className="official-account-intro">立即加入「SEL易想天開」官方社群，掃描 QR code 或點選網址，接收最新活動與學習資源。</p>{accounts.map((account) => <article className="official-account" key={account.url}><a className="official-account-qr" href={account.url} target="_blank" rel="noreferrer" aria-label={`開啟${account.name}`}><img src={account.image} alt={account.alt} /></a><div className="official-account-details"><h4>{account.name}</h4><a className="official-account-url" href={account.url} target="_blank" rel="noreferrer">網址：{account.url}</a></div></article>)}</div>
 }
 
 function HexagramCarryover({ calculation }) {
@@ -329,7 +338,7 @@ function SolutionsStep({ journal, update }) {
     if (summaryRef.current) summaryRef.current.scrollTop = summaryRef.current.scrollHeight
     draftRef.current?.focus()
   }, [summaryText])
-  return <section className="step-section"><div className="eyebrow">Step 3 · 先想想看</div><h2>卜卦前解方</h2><p className="helper">記下此刻想到的可行解方，稍後再和卦象帶來的啟發比較。</p>
+  return <section className="step-section"><div className="eyebrow">第 3 步，共 8 步：卜卦前解方 </div><h2>卜卦前先想想看有哪些解決方案？</h2><p className="helper">請先記下此刻想到的可行解決方案，稍後再與卦象帶來的啟發進行比較。</p>
     <CurrentQuestion question={journal.questionText} />
     <div className="solution-builder">
       <label className="solution-draft-label">請輸入一個可行的解方
@@ -383,8 +392,8 @@ function DiceStep({ journal, update }) {
     update({ dice: [...dice, value] })
   }
   const nextLine = LINE_NAMES[dice.length]
-  return <section className="step-section dice-step"><div><div className="eyebrow">Step 4 · 由下往上</div><h2>擲出六爻</h2><p className="helper">依初爻、二爻、三爻、四爻、五爻、上爻的順序，每次按下按鈕擲出一顆骰子。奇數為陽爻，偶數為陰爻。</p>
-    <div className="dice-roller"><div className={`die ${isRolling ? 'is-rolling' : ''}`} aria-live="polite" aria-label={isRolling ? '骰子正在滾動' : rollingValue ? `最近擲出 ${rollingValue} 點` : '尚未擲骰'}><DiceFace value={rollingValue || 1} /></div><div><p className="roll-count">第 {Math.min(dice.length + 1, 6)}／6 次 · {nextLine || '六爻已完成'}</p><button className="primary roll-button" onClick={rollDie} disabled={isRolling || dice.length >= 6}>{isRolling ? '骰子滾動中…' : dice.length >= 6 ? '已完成六次擲骰' : `由電腦擲出${nextLine}`}</button><div className="manual-dice-entry"><input type="number" min="1" max="6" inputMode="numeric" value={manualValue} placeholder="1-6" aria-label="手動輸入骰子點數" onChange={(event) => { setManualValue(event.target.value); setManualError('') }} onKeyDown={(event) => { if (event.key === 'Enter') submitManualDie() }} disabled={isRolling || dice.length >= 6} /><button className="secondary" onClick={submitManualDie} disabled={isRolling || dice.length >= 6}>手動擲骰</button></div>{manualError && <p className="manual-dice-error">{manualError}</p>}</div></div>
+  return <section className="step-section dice-step"><div><div className="eyebrow">第 4 步，共 8 步：擲骰起卦 </div><h2>請由下而上擲骰依序建立六爻</h2><p className="helper">依初爻、二爻、三爻、四爻、五爻、上爻的順序，每次按下按鈕擲出一顆骰子。奇數為陽爻，偶數為陰爻。</p>
+    <div className="dice-roller"><div className={`die ${isRolling ? 'is-rolling' : ''}`} aria-live="polite" aria-label={isRolling ? '骰子正在滾動' : rollingValue ? `最近擲出 ${rollingValue} 點` : '尚未擲骰'}><DiceFace value={rollingValue || 1} /></div><div><p className="roll-count">第 {Math.min(dice.length + 1, 6)}／6 次 · {nextLine || '六爻已完成'}</p><button className="primary roll-button" onClick={rollDie} disabled={isRolling || dice.length >= 6}>{isRolling ? '骰子滾動中…' : dice.length >= 6 ? '已完成六次擲骰' : `由電腦擲出${nextLine}`}</button><div className="manual-dice-entry"><span id="manual-dice-label">在手動擲骰子🎲後，在此記錄骰子點數：</span><select value={manualValue} aria-label="手動擲骰點數" aria-describedby="manual-dice-label" onChange={(event) => { setManualValue(event.target.value); setManualError('') }} disabled={isRolling || dice.length >= 6}><option value="">1-6</option>{[1, 2, 3, 4, 5, 6].map((value) => <option key={value} value={value}>{value}</option>)}</select><button className="secondary" onClick={submitManualDie} disabled={isRolling || dice.length >= 6}>手動擲骰點數</button></div>{manualError && <p className="manual-dice-error">{manualError}</p>}</div></div>
     <div className="dice-list">{LINE_NAMES.map((name, index) => { const value = dice[index]; return <div className={`dice-entry ${value ? 'recorded' : ''}`} key={name}><span>第 {index + 1} 次：{name}</span><strong>{value ? <DiceFace value={value} compact /> : '等待擲骰'}</strong>{value && <small>{value % 2 ? '奇數 · 陽爻' : '偶數 · 陰爻'}</small>}</div> })}</div>
     {!calculation ? <p className="notice">尚餘 {6 - dice.length} 爻。完成第六爻後才會查詢完整本卦。</p> : <div className="result-chip">六爻已完成，可前往查看本卦與綜卦。</div>}
     {dice.length > 0 && <button className="danger-link" onClick={() => { if (window.confirm('確定清除全部六爻嗎？此操作無法復原。')) update({ dice: [] }) }}>清除全部六爻</button>}</div>
@@ -401,8 +410,8 @@ function ResultsStep({ journal }) {
     window.setTimeout(() => guideButtonRef.current?.focus(), 0)
   }
   const guideButton = <><button ref={guideButtonRef} className="secondary guide-button" onClick={() => setIsGuideOpen(true)}>卜卦解卦指南</button>{isGuideOpen && <GuideDialog onClose={closeGuide} />}</>
-  if (!calculation) return <section className="step-section"><div className="eyebrow">Step 5 · 卦象結果</div><h2>本卦與綜卦</h2><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="notice error">請先完成六次擲骰，才能檢視卦象結果。</div></section>
-  return <section className="step-section"><div className="eyebrow">Step 5 · 卦象結果</div><h2>本卦與綜卦</h2><p className="helper">翻閱兩張牌卡，讓金句、SEL 連結與大象辭帶來新的觀看角度。</p><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="card-grid"><Card title="本卦" data={calculation.original} id={calculation.originalId} /><Card title={calculation.pairTitle} data={calculation.comprehensive} id={calculation.comprehensiveId} /></div></section>
+  if (!calculation) return <section className="step-section"><div className="eyebrow">第 5 步，共 8 步：卦象結果</div><h2>起卦得到的本卦與綜卦／錯卦</h2><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="notice error">請先完成六次擲骰，才能檢視卦象結果。</div></section>
+  return <section className="step-section"><div className="eyebrow">第 5 步，共 8 步：卦象結果</div><h2>起卦得到的本卦與綜卦／錯卦</h2><p className="helper">翻閱兩張牌卡，讓金句、SEL 連結與大象辭帶來新的觀看角度。</p><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="card-grid"><Card title="本卦" data={calculation.original} id={calculation.originalId} /><Card title={calculation.pairTitle} data={calculation.comprehensive} id={calculation.comprehensiveId} /></div></section>
 }
 
 function GuideDialog({ onClose }) {
@@ -446,9 +455,9 @@ function GuideDialog({ onClose }) {
 function ReflectionsStep({ journal, update }) {
   const calculation = getCalculation(journal.dice)
   const observationReflection = getObservationReflection(journal)
-  return <section className="step-section"><div className="eyebrow">Step 6 · 留下觀察</div><h2>觀象反思</h2><p className="helper">個人／小組共同根據本卦和金句，對設定問題進行久思。</p><CurrentQuestion question={journal.questionText} />
+  return <section className="step-section"><div className="eyebrow">第 6 步，共 8 步：觀象反思</div><h2>受卦象啟發，提出新的解決方案</h2><p className="helper">個人／小組共同根據本卦和綜/錯卦的卦象和金句，對設定問題進行反思。</p><CurrentQuestion question={journal.questionText} />
     <HexagramCarryover calculation={calculation} />
-    <article className="reflection-card"><h3>個人／小組根據本卦和綜/錯卦的卦象和金句對設定問題的反思</h3><textarea rows="10" value={observationReflection} placeholder="請記錄個人／小組根據本卦和綜/錯卦的卦象和金句對設定問題，對設定問題的觀察、思考與反思。" aria-label="觀象反思" onChange={(event) => update({ observationReflection: event.target.value })} /></article>
+    <article className="reflection-card"><h3>個人／小組根據本卦和綜/錯卦的卦象和金句的啟發，對設定問題提出新的解決方案</h3><textarea rows="10" value={observationReflection} placeholder="請記錄個人／小組根據本卦和綜/錯卦的卦象和金句的觀察與思考後，對設定問題所產生新的解決方案。" aria-label="觀象反思" onChange={(event) => update({ observationReflection: event.target.value })} /></article>
   </section>
 }
 
@@ -460,9 +469,21 @@ function IntegrationStep({ journal, update }) {
     setIsAiReflectionOpen(false)
     window.setTimeout(() => aiReflectionButtonRef.current?.focus(), 0)
   }
-  return <section className="step-section"><div className="eyebrow">Step 7 · AI 智慧解卦與 SEL 反思</div> <CurrentQuestion question={journal.questionText} /><div className="ai-reflection-action"><button ref={aiReflectionButtonRef} className="secondary" type="button" aria-haspopup="dialog" onClick={() => setIsAiReflectionOpen(true)}>AI 智慧解卦與 SEL 反思</button></div><div className="stack-fields">
-    <label>請把 AI 的回覆貼在下面，需要的話可以修改。<textarea rows="4" value={journal.sharedInterpretation} placeholder="AI 的回覆" onChange={(event) => update({ sharedInterpretation: event.target.value })} /></label>
-  </div>{isAiReflectionOpen && <AiReflectionDialog journal={journal} calculation={calculation} onClose={closeAiReflection} />}</section>
+  return (
+    <section className="step-section">
+      <div className="eyebrow">第 7 步，共 8 步：AI 解卦、SEL 反思與行動心得總結</div>
+      <CurrentQuestion question={journal.questionText} />
+      <div className="ai-reflection-action">
+        <p>請點選下方按鈕，讓 AI 根據本卦的核心智慧，分析你的問題，並連結 SEL 五大核心能力，提供反思與行動建議。</p>
+        <button ref={aiReflectionButtonRef} className="secondary" type="button" aria-haspopup="dialog" onClick={() => setIsAiReflectionOpen(true)}>開始 AI 解卦與 SEL 反思</button>
+      </div>
+      <div className="stack-fields">
+        <label>請把 AI 的回覆貼在下面，需要的話可以修改。<textarea rows="4" value={journal.sharedInterpretation} placeholder="AI 的回覆" onChange={(event) => update({ sharedInterpretation: event.target.value })} /></label>
+        <label>下一步行動和心得總結<textarea rows="5" value={journal.nextActionSummary || ''} placeholder={'我要做什麼？何時開始？如何知道自己做到了？\n\n心得總結：'} onChange={(event) => update({ nextActionSummary: event.target.value })} /></label>
+      </div>
+      {isAiReflectionOpen && <AiReflectionDialog journal={journal} calculation={calculation} onClose={closeAiReflection} />}
+    </section>
+  )
 }
 
 function AiReflectionDialog({ journal, calculation, onClose }) {
@@ -515,8 +536,9 @@ function JournalPreview({ journal, previewRef }) {
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
     <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p></section>
+    <section className="print-block"><h3>下一步行動和心得總結</h3><p>{valueOrBlank(journal.nextActionSummary)}</p></section>
     <section className="print-block journal-media-block"><h3>SEL 易想天開與 SEL 五項能力</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
-    <section className="print-block journal-media-block"><h3>SEL 易想天開官方帳號</h3><img className="fan-club-image" src={fanClubImage} alt="SEL 易想天開官方帳號" /></section>
+    <section className="print-block journal-media-block"><h3>加入 SEL 易想天開官方社群</h3><OfficialAccountLinks /></section>
     <section className="print-block journal-media-block"><h3>SEL 易想天開卡牌</h3><img src={cardSetImage} alt="SEL 易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" /></section>
     <footer>建立時間：{formatDate(journal.createdAt)}　最後更新：{formatDate(journal.updatedAt)}　資料版本：{journal.hexagramDataVersion}</footer>
   </div>
@@ -581,7 +603,7 @@ function ExportStep({ journal, complete }) {
       setIsPdfGenerating(false)
     }
   }
-  return <section className="step-section export-step"><div className="eyebrow">Step 8 · 收藏與分享</div><h2>預覽完整學習日誌</h2><p className="helper">選擇「列印／另存 PDF」後，可在瀏覽器列印視窗選擇另存為 PDF。未填欄位會標示為「尚未填寫」。</p>
+  return <section className="step-section export-step"><div className="eyebrow">第 8 步，共 8 步：收藏與分享</div><h2>預覽完整學習日誌</h2><p className="helper">選擇「列印／另存 PDF」後，可在瀏覽器列印視窗選擇另存為 PDF。未填欄位會標示為「尚未填寫」。</p>
     <div className="export-actions no-print"><button className="primary" onClick={downloadPdf} disabled={isPdfGenerating}>{isPdfGenerating ? '正在產生 PDF…' : '下載 PDF'}</button><button className="secondary" onClick={() => { complete(); window.print() }}>列印／另存 PDF</button><button className="secondary fan-club-button" onClick={() => setIsFanClubOpen(true)}>SEL易想天開官方帳號</button><button ref={purchaseButtonRef} className="secondary purchase-button" onClick={() => setIsPurchaseOpen(true)}>購買SEL易想天開卡牌</button></div>{pdfError && <p className="notice error no-print">{pdfError}</p>}{isFanClubOpen && <FanClubDialog onClose={() => setIsFanClubOpen(false)} />}{isPurchaseOpen && <CardPurchaseDialog onClose={closePurchase} />}<JournalPreview journal={journal} previewRef={previewRef} />
   </section>
 }
@@ -617,8 +639,8 @@ function FanClubDialog({ onClose }) {
   }, [onClose])
   return <div className="fan-club-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
     <section className="fan-club-dialog" role="dialog" aria-modal="true" aria-labelledby="fan-club-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
-      <div className="fan-club-dialog-header"><h2 id="fan-club-dialog-title">SEL易想天開官方帳號</h2><button className="icon-button" aria-label="關閉粉絲團圖片" onClick={onClose}>×</button></div>
-      <img className="fan-club-image" src={fanClubImage} alt="SEL易想天開官方帳號" />
+      <div className="fan-club-dialog-header"><h2 id="fan-club-dialog-title">加入 SEL 易想天開官方社群</h2><button className="icon-button" aria-label="關閉官方社群資訊" onClick={onClose}>×</button></div>
+      <OfficialAccountLinks />
     </section>
   </div>
 }
@@ -658,8 +680,7 @@ function App() {
 
   if (!active) return <main className="home-shell"><header className="home-hero"><div><p className="eyebrow">SEL · 易想天開</p> 
   <img className="home-logo" src={logoImage} alt="SEL · 易想天開" />
-  <p>把一場牌卡活動，留下成為能再次閱讀的共同學習。</p>
-  <p>這個線上版最大的價值，不在於「算出什麼卦」，而是透過步驟的引導式填寫，幫助使用者（個人或是小組）從設定問題、卜卦前思考，到本卦與綜卦的對照、個人反思/小組討論，及下一步行動，留下完整的學習紀錄。</p>
+  <p>透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
   </div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
