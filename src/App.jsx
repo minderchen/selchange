@@ -49,7 +49,7 @@ const USER_GUIDE_SECTIONS = userGuideSectionBlocks.map((block) => {
 const clean = (value) => value.trim()
 const buildAiReflectionPrompt = ({ question, originalName, pairName }) => `你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
 
-請根據以下資訊，回應使用者的問題：
+請根據以下資訊，回應使用者的問題, 撰寫約 400 字的回應：
 
 ### 【本次大哉問】
 
