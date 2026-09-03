@@ -353,7 +353,7 @@ function SolutionsStep({ journal, update }) {
         <textarea ref={draftRef} className="solution-draft" value={draftSolution} rows="2" aria-label="請輸入一個可行的解方" onChange={(event) => setDraftSolution(event.target.value)} />
       </label>
       <button className="secondary add-solution-button" onClick={addSolution} disabled={!clean(draftSolution)}>＋ 新增解方</button>
-      <h3>已經想到的解方如下(可以直接編輯): </h3>
+      <h3>已記錄的解方如下(可直接編輯): </h3>
       <textarea ref={summaryRef} className="solution-summary" value={summaryText} rows="9" aria-label="已經想到的解方列表(可以直接編輯)" onChange={(event) => updateFromSummary(event.target.value)} />
       
     </div>
