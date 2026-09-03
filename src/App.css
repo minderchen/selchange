@@ -784,6 +784,64 @@
     break-before:page;
     page-break-before:always;
   }
+
+  .journal-media-block .official-account-links {
+    gap:1rem;
+    margin-top:.65rem;
+  }
+
+  .journal-media-block .official-account-intro {
+    font-size:.78rem;
+    line-height:1.45;
+  }
+
+  .journal-media-block .official-account {
+    gap:.45rem;
+    padding:.65rem;
+  }
+
+  .journal-media-block .official-account-qr {
+    width:110px;
+  }
+
+  .journal-media-block .official-account-details h4 {
+    margin-bottom:.2rem;
+    font-size:.8rem;
+  }
+
+  .journal-media-block .official-account-url {
+    font-size:.68rem;
+    line-height:1.35;
+  }
+}
+
+.pdf-capture .journal-media-block .official-account-links {
+  gap:1rem;
+  margin-top:.65rem;
+}
+
+.pdf-capture .journal-media-block .official-account-intro {
+  font-size:.78rem;
+  line-height:1.45;
+}
+
+.pdf-capture .journal-media-block .official-account {
+  gap:.45rem;
+  padding:.65rem;
+}
+
+.pdf-capture .journal-media-block .official-account-qr {
+  width:110px;
+}
+
+.pdf-capture .journal-media-block .official-account-details h4 {
+  margin-bottom:.2rem;
+  font-size:.8rem;
+}
+
+.pdf-capture .journal-media-block .official-account-url {
+  font-size:.68rem;
+  line-height:1.35;
 }
 
 @media (max-width:767px) {
