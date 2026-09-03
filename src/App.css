@@ -769,6 +769,13 @@
   border-radius:8px;
 }
 
+.pdf-capture .journal-media-block > img {
+  width:auto;
+  max-width:100%;
+  max-height:850px;
+  object-fit:contain;
+}
+
 .journal-media-block .official-account-links {
   max-width:760px;
 }

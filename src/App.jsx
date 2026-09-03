@@ -580,20 +580,40 @@ function ExportStep({ journal, complete }) {
       const capturePreview = window.html2canvas
       const PdfDocument = window.jspdf?.jsPDF
       if (!capturePreview || !PdfDocument) throw new Error('PDF libraries are unavailable')
-      const canvas = await capturePreview(preview, {
-        backgroundColor: '#ffffff',
-        logging: false,
-        scale: Math.min(window.devicePixelRatio || 1, 2),
-        useCORS: true,
-        windowWidth: preview.scrollWidth,
-      })
+      preview.classList.add('pdf-capture')
+      let canvas
+      let protectedMediaRanges
+      try {
+        canvas = await capturePreview(preview, {
+          backgroundColor: '#ffffff',
+          logging: false,
+          scale: Math.min(window.devicePixelRatio || 1, 2),
+          useCORS: true,
+          windowWidth: preview.scrollWidth,
+        })
+        const previewTop = preview.getBoundingClientRect().top
+        const canvasPixelsPerCssPixel = canvas.height / preview.scrollHeight
+        const protectedMedia = [...new Set(Array.from(preview.querySelectorAll('img'), (image) => image.closest('.journal-media-block, .trigram-images') || image))]
+        protectedMediaRanges = protectedMedia.map((element) => {
+          const bounds = element.getBoundingClientRect()
+          return {
+            top: Math.max(0, Math.floor((bounds.top - previewTop) * canvasPixelsPerCssPixel)),
+            bottom: Math.min(canvas.height, Math.ceil((bounds.bottom - previewTop) * canvasPixelsPerCssPixel)),
+          }
+        }).filter(({ bottom, top }) => bottom > top).sort((first, second) => first.top - second.top)
+      } finally {
+        preview.classList.remove('pdf-capture')
+      }
       const pdf = new PdfDocument({ orientation: 'portrait', unit: 'mm', format: 'a4' })
       const margin = 10
       const pageWidth = pdf.internal.pageSize.getWidth() - margin * 2
       const pageHeight = pdf.internal.pageSize.getHeight() - margin * 2
       const pageHeightPx = Math.floor((pageHeight * canvas.width) / pageWidth)
-      for (let offset = 0; offset < canvas.height; offset += pageHeightPx) {
-        const sliceHeight = Math.min(pageHeightPx, canvas.height - offset)
+      for (let offset = 0; offset < canvas.height;) {
+        const preferredEnd = Math.min(offset + pageHeightPx, canvas.height)
+        const crossingMedia = protectedMediaRanges.find(({ top, bottom }) => top < preferredEnd && bottom > preferredEnd)
+        const sliceEnd = crossingMedia && crossingMedia.top > offset ? crossingMedia.top : preferredEnd
+        const sliceHeight = sliceEnd - offset
         const pageCanvas = document.createElement('canvas')
         pageCanvas.width = canvas.width
         pageCanvas.height = sliceHeight
@@ -603,6 +623,7 @@ function ExportStep({ journal, complete }) {
         context.drawImage(canvas, 0, offset, canvas.width, sliceHeight, 0, 0, pageCanvas.width, sliceHeight)
         if (offset > 0) pdf.addPage()
         pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, margin, pageWidth, (sliceHeight * pageWidth) / canvas.width, undefined, 'FAST')
+        offset = sliceEnd
       }
       pdf.save(`SEL易想天開學習日誌-${new Date().toISOString().slice(0, 10)}.pdf`)
     } catch {
