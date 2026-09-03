@@ -545,9 +545,9 @@ function JournalPreview({ journal, previewRef }) {
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
     <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p></section>
     <section className="print-block"><h3>下一步行動和心得總結</h3><p>{valueOrBlank(journal.nextActionSummary)}</p></section>
-    <section className="print-block journal-media-block"><h3>SEL 易想天開與 SEL 五項能力</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
+    <section className="print-block journal-media-block pdf-page-break-before"><h3>SEL 易想天開與 SEL 五項能力</h3><img src={selSlideImage} alt="易經卦象與 SEL 五項能力的關聯圖" /></section>
     <section className="print-block journal-media-block"><h3>加入 SEL 易想天開官方社群</h3><OfficialAccountLinks /></section>
-    <section className="print-block journal-media-block"><h3>SEL 易想天開卡牌</h3><img src={cardSetImage} alt="SEL 易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" /></section>
+    <section className="print-block journal-media-block pdf-page-break-before"><h3>SEL 易想天開卡牌</h3><img src={cardSetImage} alt="SEL 易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" /></section>
     <footer>建立時間：{formatDate(journal.createdAt)}　最後更新：{formatDate(journal.updatedAt)}　資料版本：{journal.hexagramDataVersion}</footer>
   </div>
 }
@@ -583,6 +583,7 @@ function ExportStep({ journal, complete }) {
       preview.classList.add('pdf-capture')
       let canvas
       let protectedMediaRanges
+      let forcedPageBreaks
       try {
         canvas = await capturePreview(preview, {
           backgroundColor: '#ffffff',
@@ -601,6 +602,10 @@ function ExportStep({ journal, complete }) {
             bottom: Math.min(canvas.height, Math.ceil((bounds.bottom - previewTop) * canvasPixelsPerCssPixel)),
           }
         }).filter(({ bottom, top }) => bottom > top).sort((first, second) => first.top - second.top)
+        forcedPageBreaks = Array.from(preview.querySelectorAll('.pdf-page-break-before'), (element) => {
+          const bounds = element.getBoundingClientRect()
+          return Math.max(0, Math.floor((bounds.top - previewTop) * canvasPixelsPerCssPixel))
+        }).filter((offset, index, offsets) => offset > 0 && offsets.indexOf(offset) === index).sort((first, second) => first - second)
       } finally {
         preview.classList.remove('pdf-capture')
       }
@@ -610,7 +615,8 @@ function ExportStep({ journal, complete }) {
       const pageHeight = pdf.internal.pageSize.getHeight() - margin * 2
       const pageHeightPx = Math.floor((pageHeight * canvas.width) / pageWidth)
       for (let offset = 0; offset < canvas.height;) {
-        const preferredEnd = Math.min(offset + pageHeightPx, canvas.height)
+        const forcedBreak = forcedPageBreaks.find((breakOffset) => breakOffset > offset)
+        const preferredEnd = Math.min(offset + pageHeightPx, forcedBreak ?? canvas.height, canvas.height)
         const crossingMedia = protectedMediaRanges.find(({ top, bottom }) => top < preferredEnd && bottom > preferredEnd)
         const sliceEnd = crossingMedia && crossingMedia.top > offset ? crossingMedia.top : preferredEnd
         const sliceHeight = sliceEnd - offset
