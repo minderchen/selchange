@@ -591,6 +591,19 @@ function ExportStep({ journal, complete }) {
           scale: Math.min(window.devicePixelRatio || 1, 2),
           useCORS: true,
           windowWidth: preview.scrollWidth,
+          onclone: (clonedDocument) => {
+            clonedDocument.documentElement.style.background = '#ffffff'
+            clonedDocument.body.style.background = '#ffffff'
+            const clonedPreview = clonedDocument.querySelector('.journal-preview.pdf-capture')
+            if (clonedPreview) {
+              clonedPreview.style.position = 'fixed'
+              clonedPreview.style.top = '0'
+              clonedPreview.style.left = '0'
+              clonedPreview.style.background = '#ffffff'
+              clonedPreview.style.border = '0'
+              clonedPreview.style.boxShadow = 'none'
+            }
+          },
         })
         const previewTop = preview.getBoundingClientRect().top
         const canvasPixelsPerCssPixel = canvas.height / preview.scrollHeight

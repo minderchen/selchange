@@ -759,6 +759,12 @@
   max-height:64px;
 }
 
+.journal-preview.pdf-capture {
+  width:830px;
+  max-width:none;
+  padding:3rem;
+}
+
 .journal-media-block img {
   display:block;
   width:100%;
