@@ -259,6 +259,34 @@
   font-weight:800;
 }
 
+.home-hero-actions {
+  position:relative;
+  z-index:1;
+  display:grid;
+  justify-items:end;
+  gap:.75rem;
+}
+
+.home-info-links {
+  display:flex;
+  gap:1rem;
+}
+
+.home-hero .sel-link {
+  color:#fff;
+}
+
+@media (max-width:767px) {
+  .home-hero-actions {
+    justify-items:start;
+    margin-top:1.25rem;
+  }
+
+  .home-hero-actions .hero-button {
+    margin-top:0;
+  }
+}
+
 .card-front .hexagram-lines {
   width:min(74px,30%);
   gap:8px;
