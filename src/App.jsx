@@ -471,45 +471,25 @@ function ReflectionsStep({ journal, update }) {
 
 function IntegrationStep({ journal, update }) {
   const calculation = getCalculation(journal.dice)
-  const [isAiReflectionOpen, setIsAiReflectionOpen] = useState(false)
-  const aiReflectionButtonRef = useRef(null)
-  const closeAiReflection = () => {
-    setIsAiReflectionOpen(false)
-    window.setTimeout(() => aiReflectionButtonRef.current?.focus(), 0)
-  }
   return (
     <section className="step-section">
       <div className="eyebrow">第 7 步，共 8 步：AI 解卦、SEL 反思與行動心得總結</div>
-      <CurrentQuestion question={journal.questionText} />
-      <div className="ai-reflection-action">
-        <p>請點選下方按鈕，讓 AI 根據本卦的核心智慧，分析你的問題，並連結 SEL 五大核心能力，提供反思與行動建議。</p>
-        <button ref={aiReflectionButtonRef} className="secondary" type="button" aria-haspopup="dialog" onClick={() => setIsAiReflectionOpen(true)}>開始 AI 解卦與 SEL 反思</button>
-      </div>
+          {/* <CurrentQuestion question={journal.questionText} /> */}
+      <AiReflectionPanel journal={journal} calculation={calculation} />
       <div className="stack-fields">
         <label>請把 AI 的回覆貼在下面，需要的話可以修改。<textarea rows="4" value={journal.sharedInterpretation} placeholder="AI 的回覆" onChange={(event) => update({ sharedInterpretation: event.target.value })} /></label>
         <label>下一步行動和心得總結<textarea rows="5" value={journal.nextActionSummary || ''} placeholder={'我要做什麼？何時開始？如何知道自己做到了？\n\n心得總結：'} onChange={(event) => update({ nextActionSummary: event.target.value })} /></label>
       </div>
-      {isAiReflectionOpen && <AiReflectionDialog journal={journal} calculation={calculation} onClose={closeAiReflection} />}
     </section>
   )
 }
 
-function AiReflectionDialog({ journal, calculation, onClose }) {
-  const closeButtonRef = useRef(null)
+function AiReflectionPanel({ journal, calculation }) {
   const [copyStatus, setCopyStatus] = useState('')
   const question = clean(journal.questionText) || '尚未填寫本次大哉問'
   const originalName = calculation?.original ? `第 ${calculation.original.seq} 卦 · ${calculation.original.hexagram}` : '尚未完成六次擲骰'
   const pairName = calculation?.comprehensive ? `${calculation.pairTitle} · 第 ${calculation.comprehensive.seq} 卦 · ${calculation.comprehensive.hexagram}` : '尚未完成六次擲骰'
   const prompt = buildAiReflectionPrompt({ question, originalName, pairName })
-
-  useEffect(() => {
-    closeButtonRef.current?.focus()
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [onClose])
 
   const copyPrompt = async () => {
     try {
@@ -520,15 +500,11 @@ function AiReflectionDialog({ journal, calculation, onClose }) {
     }
   }
 
-  return <div className="ai-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
-    <section className="ai-dialog" role="dialog" aria-modal="true" aria-labelledby="ai-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
-      <header className="ai-dialog-header"><div><p className="eyebrow">Step 7 · 智慧引導</p><h2 id="ai-dialog-title">AI 智慧解卦與 SEL 反思</h2></div><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉 AI 智慧解卦與 SEL 反思" onClick={onClose}>×</button></header>
-      <div className="ai-dialog-content">
-        <section className="ai-context" aria-labelledby="ai-context-title"><h3 id="ai-context-title">本次解讀資訊</h3><dl><div><dt>本次大哉問</dt><dd>{question}</dd></div><div><dt>本卦</dt><dd>{originalName}</dd></div><div><dt>綜卦／錯卦</dt><dd>{pairName}</dd></div></dl></section>
-        {(!clean(journal.questionText) || !calculation) && <p className="notice error">請完成本次大哉問與六次擲骰後，再取得包含完整卦象資訊的 AI 解讀提示詞。</p>}
-        <section className="ai-prompt-panel" aria-labelledby="ai-prompt-title"><h3 id="ai-prompt-title">AI 解讀提示詞</h3><p>已將本次問題與卦象資料帶入。複製後可貼到您使用的 AI 工具，取得以本卦為主、連結 SEL 五大核心能力的反思與行動建議。</p><div className="ai-prompt-actions ai-prompt-actions-top"><button className="primary" type="button" onClick={copyPrompt}>複製 AI 提示詞</button></div><textarea className="ai-prompt-text" value={prompt} readOnly rows="18" aria-label="AI 解讀提示詞內容" /><div className="ai-prompt-actions"><button className="primary" type="button" onClick={copyPrompt}>複製 AI 提示詞</button><p className="copy-status" role="status" aria-live="polite">{copyStatus}</p></div></section>
-      </div>
-    </section>
+  return <div className="ai-reflection-panel">
+    {/* <section className="ai-context" aria-labelledby="ai-context-title"><h3 id="ai-context-title">本次解讀資訊</h3><dl><div><dt>本次大哉問</dt><dd>{question}</dd></div><div><dt>本卦</dt><dd>{originalName}</dd></div><div><dt>綜卦／錯卦</dt><dd>{pairName}</dd></div></dl></section> */}
+    {/*<section className="ai-context" aria-labelledby="ai-context-title"><div><dt>本次大哉問</dt><dd>{question}</dd></div></section> */}
+    {(!clean(journal.questionText) || !calculation) && <p className="notice error">請完成本次大哉問與六次擲骰後，再取得包含完整卦象資訊的 AI 解讀提示詞。</p>}
+    <section className="ai-prompt-panel" aria-labelledby="ai-prompt-title"><h3 id="ai-prompt-title">AI 解讀提示詞</h3><p>已將本次問題與卦象資料帶入。複製後可貼到您使用的 AI 工具，取得以本卦為主、連結 SEL 五大核心能力的反思與行動建議。</p><div className="ai-prompt-actions ai-prompt-actions-top"><button className="primary" type="button" onClick={copyPrompt}>複製 AI 提示詞</button></div><textarea className="ai-prompt-text" value={prompt} readOnly rows="10" aria-label="AI 解讀提示詞內容" /><div className="ai-prompt-actions"><p className="copy-status" role="status" aria-live="polite">{copyStatus}</p></div></section>
   </div>
 }
 
