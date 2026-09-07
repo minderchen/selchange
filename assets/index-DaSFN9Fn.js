@@ -83,7 +83,7 @@ Error generating stack: `+e.message+`
 3. 使用「另存副本」保留原始日誌並建立副本。\r
 4. 使用刪除按鈕移除不需要的日誌；此操作無法復原。`,m=`/selchange/assets/Line-BoUkqE_5.jpg`,h=`/selchange/assets/Facebook-DhWh0AGW.jpg`,g=`/selchange/assets/SEL-Change_Logo-BY2UjU-7.jpg`,_=`/selchange/assets/SEL-Change_Slide-BQJDfMXJ.jpg`,v=`/selchange/assets/SEL-Change-Card-Set-BBiF5s2g.jpg`,y=`/selchange/assets/%E5%9C%B0-BRrdSdrS.png`,b=`/selchange/assets/%E5%A4%A9-ChvLJbc4.png`,x=`/selchange/assets/%E5%B1%B1-Bxpqqv3l.png`,ee=`/selchange/assets/%E6%B0%B4-B9IoFhJT.png`,S=`/selchange/assets/%E6%BE%A4-GCEwYZuZ.png`,C=`/selchange/assets/%E7%81%AB-NS8RnFYw.png`,te=`/selchange/assets/%E9%9B%B7-De_hzfal.png`,ne=`/selchange/assets/%E9%A2%A8-C323Rs-F.png`,re=e((e=>{var t=Symbol.for(`react.transitional.element`),n=Symbol.for(`react.fragment`);function r(e,n,r){var i=null;if(r!==void 0&&(i=``+r),n.key!==void 0&&(i=``+n.key),`key`in n)for(var a in r={},n)a!==`key`&&(r[a]=n[a]);else r=n;return n=r.ref,{$$typeof:t,type:e,key:i,ref:n===void 0?null:n,props:r}}e.Fragment=n,e.jsx=r,e.jsxs=r})),w=e(((e,t)=>{t.exports=re()}))(),ie=`iching-learning-journals-v1`,ae=[`初爻`,`二爻`,`三爻`,`四爻`,`五爻`,`上爻`],oe=[`基本資料`,`設定問題`,`卜卦前解方`,`擲骰起卦`,`卦象結果`,`觀象反思`,`AI解卦與行動`,`預覽與匯出`],se={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]},ce={111:{name:`天`,image:b},"000":{name:`地`,image:y},"001":{name:`雷`,image:te},"010":{name:`水`,image:ee},"011":{name:`澤`,image:S},100:{name:`山`,image:x},101:{name:`火`,image:C},110:{name:`風`,image:ne}},le=[{name:`自我覺察`,english:`Self-Awareness`,description:`認識自己的情緒、價值、動機、優勢與限制。`},{name:`自我管理`,english:`Self-Management`,description:`調節情緒、衝動與行動，不讓情緒直接控制自己。`},{name:`社會覺察`,english:`Social Awareness`,description:`理解他人的觀點、情緒與處境，具備同理心與換位思考。`},{name:`人際關係技巧`,english:`Relationship Skills`,description:`溝通、合作、協商、處理衝突與建立信任。`},{name:`負責任的決策`,english:`Responsible Decision-Making`,description:`整合自我、他人與情境，評估後果，作出兼顧長期影響的選擇。`}],[ue,...T]=p.trim().split(/\r?\n(?=## )/),E=ue.split(/\r?\n/).filter(e=>!e.startsWith(`# `)).join(` `).trim(),de=T.map(e=>{let[t,...n]=e.replace(/^## /,``).split(/\r?\n/);return{title:t,items:n.filter(e=>/^\d+\. /.test(e)).map(e=>e.replace(/^\d+\. /,``))}}),fe=e=>e.trim(),pe=({question:e,originalName:t,pairName:n})=>`你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
 
-請根據以下資訊，回應使用者的問題, 撰寫約 400 字的回應：
+請根據以下資訊，回應使用者的問題, 回答總長度請控制在 350–400 字內，最多不得超過 400 字。請精簡、避免重複。
 
 ### 【本次大哉問】
 
@@ -139,7 +139,7 @@ ${n}
 用 2–3 句話說明本卦對「本次大哉問」最重要的啟示。
 
 **SEL 五力反思：**
-分別指出與本次問題最相關的 SEL 能力與反思重點。
+僅選出最相關的 2–3 項 SEL 能力，各用 1或2句說明。
 
 **我可以採取的下一步：**
 提出 1–3 個具體、可實行的行動建議。
