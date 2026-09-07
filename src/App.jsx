@@ -49,7 +49,7 @@ const USER_GUIDE_SECTIONS = userGuideSectionBlocks.map((block) => {
 const clean = (value) => value.trim()
 const buildAiReflectionPrompt = ({ question, originalName, pairName }) => `你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
 
-請根據以下資訊，回應使用者的問題, 撰寫約 400 字的回應：
+請根據以下資訊，回應使用者的問題, 回答總長度請控制在 350–400 字內，最多不得超過 400 字。請精簡、避免重複。
 
 ### 【本次大哉問】
 
@@ -105,7 +105,7 @@ ${pairName}
 用 2–3 句話說明本卦對「本次大哉問」最重要的啟示。
 
 **SEL 五力反思：**
-分別指出與本次問題最相關的 SEL 能力與反思重點。
+僅選出最相關的 2–3 項 SEL 能力，各用 1或2句說明。
 
 **我可以採取的下一步：**
 提出 1–3 個具體、可實行的行動建議。
