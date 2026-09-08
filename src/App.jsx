@@ -7,6 +7,8 @@ import facebookQrCode from './assets/Facebook.jpg'
 import logoImage from './assets/SEL-Change_Logo.jpg'
 import selSlideImage from './assets/SEL-Change_Slide.jpg'
 import cardSetImage from './assets/SEL-Change-Card-Set.jpg'
+import classCultureImage from './assets/class_culture.jpg'
+import selClassicImage from './assets/SEL_classic.png'
 import earthTrigram from './assets/地.png'
 import heavenTrigram from './assets/天.png'
 import mountainTrigram from './assets/山.png'
@@ -105,7 +107,7 @@ ${pairName}
 用 2–3 句話說明本卦對「本次大哉問」最重要的啟示。
 
 **SEL 五力反思：**
-僅選出最相關的 2–3 項 SEL 能力，各用 1或2句說明。
+僅選出最相關的 2–3 項 SEL 能力，各用 1或2班級文化成長句說明。
 
 **我可以採取的下一步：**
 提出 1–3 個具體、可實行的行動建議。
@@ -705,6 +707,24 @@ function UserGuideDialog({ onClose }) {
   </div>
 }
 
+function ClassCultureDialog({ onClose }) {
+  const closeButtonRef = useRef(null)
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+  return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="sel-dialog class-culture-dialog" role="dialog" aria-modal="true" aria-labelledby="class-culture-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="sel-dialog-header"><h2 id="class-culture-dialog-title">班級文化成長</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉班級文化成長" onClick={onClose}>×</button></header>
+      <div className="class-culture-images"><img src={classCultureImage} alt="班級文化成長" /><img src={selClassicImage} alt="SEL 經典" /></div>
+    </section>
+  </div>
+}
+
 function App() {
   const [journals, setJournals] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] } })
   const [activeId, setActiveId] = useState(null)
@@ -712,6 +732,7 @@ function App() {
   const [saveState, setSaveState] = useState('已儲存')
   const [isSelDialogOpen, setIsSelDialogOpen] = useState(false)
   const [isUserGuideOpen, setIsUserGuideOpen] = useState(false)
+  const [isClassCultureOpen, setIsClassCultureOpen] = useState(false)
   const active = journals.find((item) => item.journalId === activeId)
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); setSaveState('已儲存') } catch { setSaveState('儲存失敗') } }, [journals])
   const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => item.journalId === activeId ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)) }
@@ -724,10 +745,10 @@ function App() {
   if (!active) return <><main className="home-shell"><header className="home-hero"><div><p className="eyebrow">SEL · 易想天開</p> 
   <img className="home-logo" src={logoImage} alt="SEL · 易想天開" />
   <p>透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
-  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button></div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></div></header>
+  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>班級文化成長</button></div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
-    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}</>
+    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
 
   const stepContent = [<BasicStep key="basic" journal={active} update={update} />, <QuestionStep key="question" journal={active} update={update} />, <SolutionsStep key="solutions" journal={active} update={update} />, <DiceStep key="dice" journal={active} update={update} />, <ResultsStep key="results" journal={active} />, <ReflectionsStep key="reflections" journal={active} update={update} />, <IntegrationStep key="integration" journal={active} update={update} />, <ExportStep key="export" journal={active} complete={complete} />][step]
   return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><div className="save-status"><i className={saveState === '已儲存' ? 'saved' : ''} />{saveState}</div><button className="exit-button" onClick={() => setActiveId(null)}>暫存離開</button></div></header>

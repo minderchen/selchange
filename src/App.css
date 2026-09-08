@@ -269,6 +269,7 @@
 
 .home-info-links {
   display:flex;
+  flex-wrap:wrap;
   gap:1rem;
 }
 
@@ -324,6 +325,24 @@
   width:100%;
   height:auto;
   margin:0 0 1.5rem;
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+
+.class-culture-dialog {
+  width:min(1080px,100%);
+}
+
+.class-culture-images {
+  display:grid;
+  gap:1.25rem;
+  padding-top:1.25rem;
+}
+
+.class-culture-images img {
+  display:block;
+  width:100%;
+  height:auto;
   border:1px solid var(--line);
   border-radius:8px;
 }
