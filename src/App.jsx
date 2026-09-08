@@ -310,7 +310,7 @@ function HexagramCarryover({ calculation }) {
       <span>{title}</span>
       <strong>第 {data.seq} 卦 · {data.hexagram}</strong>
       <TrigramImages id={id} hexagram={data.hexagram} />
-      <p>「{data.judgement1}」<br />「{data.judgement2}」</p>
+      <p>「{data.judgement1}」 &nbsp;&nbsp;&nbsp;「{data.judgement2}」</p>
       <p>大象辭：{data.commentary}</p>
     </article>)}
   </div>
