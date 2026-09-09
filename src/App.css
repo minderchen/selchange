@@ -333,6 +333,50 @@
   width:min(1080px,100%);
 }
 
+.ai-softskill-content {
+  padding-top:1.25rem;
+  color:#24393a;
+}
+
+.ai-softskill-content h3 {
+  margin-bottom:.6rem;
+  color:var(--teal);
+  font-size:1.3rem;
+}
+
+.ai-softskill-content > p {
+  margin-bottom:.85rem;
+  font-weight:700;
+}
+
+.ai-softskill-content ol {
+  display:grid;
+  gap:.7rem;
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+
+.ai-softskill-content li {
+  padding:.8rem 1rem;
+  background:#f4f8f5;
+  border-left:4px solid var(--teal);
+  border-radius:6px;
+}
+
+.ai-softskill-content strong,
+.ai-softskill-content span {
+  display:block;
+}
+
+.ai-softskill-content strong {
+  margin-bottom:.2rem;
+}
+
+.ai-softskill-content span {
+  line-height:1.7;
+}
+
 .class-culture-images {
   display:grid;
   gap:1.25rem;

@@ -7,8 +7,8 @@ import facebookQrCode from './assets/Facebook.jpg'
 import logoImage from './assets/SEL-Change_Logo.jpg'
 import selSlideImage from './assets/SEL-Change_Slide.jpg'
 import cardSetImage from './assets/SEL-Change-Card-Set.jpg'
-import classCultureImage from './assets/class_culture.jpg'
-import selClassicImage from './assets/SEL_classic.png'
+import aiSoftskillImage1 from './assets/AI_softskill1.jpg'
+import aiSoftskillImage2 from './assets/AI_softskill2.jpg'
 import earthTrigram from './assets/地.png'
 import heavenTrigram from './assets/天.png'
 import mountainTrigram from './assets/山.png'
@@ -710,6 +710,13 @@ function UserGuideDialog({ onClose }) {
 
 function ClassCultureDialog({ onClose }) {
   const closeButtonRef = useRef(null)
+  const capabilities = [
+    ['① 自我覺察｜我現在怎麼了？', '知道自己的情緒、優勢、限制與真正想要的是什麼。'],
+    ['② 情緒調節｜我能不能穩住自己？', '面對失敗、焦慮、比較與壓力，不被情緒完全牽著走。'],
+    ['③ 認知彈性｜事情一定只能這樣嗎？', '能換角度、重新詮釋問題，甚至在困境中看見新的可能。'],
+    ['④ 決策行動｜不知道答案，還能不能走？', 'AI可以給答案，但人生很多問題沒有標準答案。要學會在資訊不完整時做選擇。'],
+    ['⑤ 復原成長｜跌倒之後，我能不能變得更強？', '把挫折從「我不行」轉化成「我從這裡學到了什麼」。'],
+  ]
   useEffect(() => {
     closeButtonRef.current?.focus()
     const handleKeyDown = (event) => {
@@ -720,8 +727,13 @@ function ClassCultureDialog({ onClose }) {
   }, [onClose])
   return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
     <section className="sel-dialog class-culture-dialog" role="dialog" aria-modal="true" aria-labelledby="class-culture-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
-      <header className="sel-dialog-header"><h2 id="class-culture-dialog-title">班級文化成長</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉班級文化成長" onClick={onClose}>×</button></header>
-      <div className="class-culture-images"><img src={classCultureImage} alt="班級文化成長" /><img src={selClassicImage} alt="SEL 經典" /></div>
+      <header className="sel-dialog-header"><h2 id="class-culture-dialog-title">#1 AI軟實力</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉 AI 軟實力" onClick={onClose}>×</button></header>
+      <section className="ai-softskill-content" aria-labelledby="ai-softskill-title">
+        <h3 id="ai-softskill-title">AI時代最重要的素養：心理韌性</h3>
+        <p>心理韌性包含五個核心能力：</p>
+        <ol>{capabilities.map(([title, description]) => <li key={title}><strong>{title}</strong><span>{description}</span></li>)}</ol>
+      </section>
+      <div className="class-culture-images"><img src={aiSoftskillImage1} alt="AI 時代心理韌性軟實力說明（一）" /><img src={aiSoftskillImage2} alt="AI 時代心理韌性軟實力說明（二）" /></div>
     </section>
   </div>
 }
@@ -746,7 +758,7 @@ function App() {
   if (!active) return <><main className="home-shell"><header className="home-hero"><div><p className="eyebrow">SEL · 易想天開</p> 
   <img className="home-logo" src={logoImage} alt="SEL · 易想天開" />
   <p>透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
-  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>班級文化成長</button></div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></div></header>
+  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
     {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
