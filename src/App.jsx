@@ -733,7 +733,7 @@ function ClassCultureDialog({ onClose }) {
         <p>心理韌性包含五個核心能力：</p>
         <ol>{capabilities.map(([title, description]) => <li key={title}><strong>{title}</strong><span>{description}</span></li>)}</ol>
       </section>
-      <div className="class-culture-images"><img src={aiSoftskillImage1} alt="AI 時代心理韌性軟實力說明（一）" /><img src={aiSoftskillImage2} alt="AI 時代心理韌性軟實力說明（二）" /></div>
+      <div className="class-culture-images"><img src={aiSoftskillImage1} alt="AI 時代心理韌性軟實力說明（一）" /><br /><br /><img src={aiSoftskillImage2} alt="AI 時代心理韌性軟實力說明（二）" /></div>
     </section>
   </div>
 }
