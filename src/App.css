@@ -329,6 +329,19 @@
   border-radius:8px;
 }
 
+.untie-knot-dialog {
+  width:min(1080px,100%);
+}
+
+.untie-knot-image {
+  display:block;
+  width:100%;
+  height:auto;
+  margin-top:1.25rem;
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+
 .class-culture-dialog {
   width:min(1080px,100%);
 }

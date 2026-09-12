@@ -6,6 +6,7 @@ import lineQrCode from './assets/Line.jpg'
 import facebookQrCode from './assets/Facebook.jpg'
 import logoImage from './assets/SEL-Change_Logo.jpg'
 import selSlideImage from './assets/SEL-Change_Slide.jpg'
+import untieTheKnotImage from './assets/untie_the_knot.png'
 import cardSetImage from './assets/SEL-Change-Card-Set.jpg'
 import aiSoftskillImage1 from './assets/AI_softskill1.jpg'
 import aiSoftskillImage2 from './assets/AI_softskill2.jpg'
@@ -690,6 +691,24 @@ function SelDialog({ onClose }) {
   </div>
 }
 
+function UntieTheKnotDialog({ onClose }) {
+  const closeButtonRef = useRef(null)
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+  return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="sel-dialog untie-knot-dialog" role="dialog" aria-modal="true" aria-labelledby="untie-knot-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="sel-dialog-header"><h2 id="untie-knot-dialog-title">什麼是易解心結</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉易解心結說明" onClick={onClose}>×</button></header>
+      <img className="untie-knot-image" src={untieTheKnotImage} alt="易解心結說明圖" />
+    </section>
+  </div>
+}
+
 function UserGuideDialog({ onClose }) {
   const closeButtonRef = useRef(null)
   useEffect(() => {
@@ -746,6 +765,7 @@ function App() {
   const [isSelDialogOpen, setIsSelDialogOpen] = useState(false)
   const [isUserGuideOpen, setIsUserGuideOpen] = useState(false)
   const [isClassCultureOpen, setIsClassCultureOpen] = useState(false)
+  const [isUntieKnotDialogOpen, setIsUntieKnotDialogOpen] = useState(false)
   const active = journals.find((item) => item.journalId === activeId)
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); setSaveState('已儲存') } catch { setSaveState('儲存失敗') } }, [journals])
   const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => item.journalId === activeId ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)) }
@@ -758,10 +778,10 @@ function App() {
   if (!active) return <><main className="home-shell"><header className="home-hero"><div><p className="eyebrow">SEL · 易想天開</p> 
   <img className="home-logo" src={logoImage} alt="SEL · 易想天開" />
   <p>透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
-  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></div></header>
+  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
-    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
+    {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isUntieKnotDialogOpen && <UntieTheKnotDialog onClose={() => setIsUntieKnotDialogOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
 
   const stepContent = [<BasicStep key="basic" journal={active} update={update} />, <QuestionStep key="question" journal={active} update={update} />, <SolutionsStep key="solutions" journal={active} update={update} />, <DiceStep key="dice" journal={active} update={update} />, <ResultsStep key="results" journal={active} />, <ReflectionsStep key="reflections" journal={active} update={update} />, <IntegrationStep key="integration" journal={active} update={update} />, <ExportStep key="export" journal={active} complete={complete} />][step]
   return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions">
