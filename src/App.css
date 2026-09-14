@@ -267,6 +267,13 @@
   gap:.75rem;
 }
 
+.home-primary-actions {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:end;
+  gap:.75rem;
+}
+
 .home-info-links {
   display:flex;
   flex-wrap:wrap;
@@ -281,6 +288,10 @@
   .home-hero-actions {
     justify-items:start;
     margin-top:1.25rem;
+  }
+
+  .home-primary-actions {
+    justify-content:start;
   }
 
   .home-hero-actions .hero-button {
