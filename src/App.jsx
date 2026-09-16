@@ -7,6 +7,7 @@ import facebookQrCode from './assets/Facebook.jpg'
 import logoImage from './assets/SEL-Change_Logo.jpg'
 import selSlideImage from './assets/SEL-Change_Slide.jpg'
 import untieTheKnotImage from './assets/untie_the_knot.png'
+import untieKnotImage from './assets/untie_knot.jpg'
 import cardSetImage from './assets/SEL-Change-Card-Set.jpg'
 import aiSoftskillImage1 from './assets/AI_softskill1.jpg'
 import aiSoftskillImage2 from './assets/AI_softskill2.jpg'
@@ -703,8 +704,9 @@ function UntieTheKnotDialog({ onClose }) {
   }, [onClose])
   return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
     <section className="sel-dialog untie-knot-dialog" role="dialog" aria-modal="true" aria-labelledby="untie-knot-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <img className="untie-knot-image" src={untieKnotImage} alt="易解心結說明圖" /><br></br>
       <header className="sel-dialog-header"><h2 id="untie-knot-dialog-title">什麼是易解心結</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉易解心結說明" onClick={onClose}>×</button></header>
-      <img className="untie-knot-image" src={untieTheKnotImage} alt="易解心結說明圖" />
+             <img className="untie-knot-image" src={untieTheKnotImage} alt="易解心結說明圖" />
     </section>
   </div>
 }
@@ -777,7 +779,9 @@ function App() {
 
   if (!active) return <><main className="home-shell"><header className="home-hero"><div><p className="eyebrow">SEL · 易想天開</p> 
   <img className="home-logo" src={logoImage} alt="SEL · 易想天開" />
-  <p>透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
+  <p><b>建立新日誌</b>: 透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
+  <p><b>易解心結</b>: 「易解心結」快速鍵，專門針對老師與學生一對一、處理學生間矛盾和家長問題所設計。
+直接進入「擲骰起卦」得到兩個互補的卦與四個金句，促進換位思考、自我覺察，共同化解矛盾並找到新的行動方案。</p>
   </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(), 3)}>易解心結</button></div></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
