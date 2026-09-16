@@ -704,9 +704,10 @@ function UntieTheKnotDialog({ onClose }) {
   }, [onClose])
   return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
     <section className="sel-dialog untie-knot-dialog" role="dialog" aria-modal="true" aria-labelledby="untie-knot-dialog-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="sel-dialog-header"><h2 id="untie-knot-dialog-title">什麼是易解心結</h2>  
+      <button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉易解心結說明" onClick={onClose}>×</button></header>
       <img className="untie-knot-image" src={untieKnotImage} alt="易解心結說明圖" /><br></br>
-      <header className="sel-dialog-header"><h2 id="untie-knot-dialog-title">什麼是易解心結</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉易解心結說明" onClick={onClose}>×</button></header>
-             <img className="untie-knot-image" src={untieTheKnotImage} alt="易解心結說明圖" />
+      <img className="untie-knot-image" src={untieTheKnotImage} alt="易解心結說明圖" />
     </section>
   </div>
 }
