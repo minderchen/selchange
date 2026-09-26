@@ -22,6 +22,10 @@ import windTrigram from './assets/風.png'
 import './App.css'
 
 const STORAGE_KEY = 'iching-learning-journals-v1'
+const AUDIENCE_OPTIONS = [
+  { value: 'adult', label: '成人' },
+  { value: 'kid', label: '國中／國小' },
+]
 const LINE_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']
 const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰起卦', '卦象結果', '觀象反思', 'AI解卦與行動', '預覽與匯出']
 const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }
@@ -131,12 +135,23 @@ const getObservationReflection = (journal) => {
     item.insight && `啟發：${item.insight}`,
   ].filter(Boolean).join('\n')).filter(Boolean).join('\n\n')
 }
-const createJournal = () => {
+const getAudience = (journal) => journal?.audience === 'kid' ? 'kid' : 'adult'
+const getAudienceFields = (data, audience) => {
+  if (!data) return {}
+  const isKid = audience === 'kid'
+  return {
+    judgement1: isKid ? data.kidJudgement1 : data.judgement1,
+    judgement2: isKid ? data.kidJudgement2 : data.judgement2,
+    sel1: isKid ? data.kidSel1 : data.sel1,
+    sel2: isKid ? data.kidSel2 : data.sel2,
+  }
+}
+const createJournal = (audience = 'adult') => {
   const created = new Date().toISOString()
   return {
     journalId: makeId(), schemaVersion: '1.0', hexagramDataVersion: 'Hexagram.xlsx',
     createdAt: created, updatedAt: created, activityAt: nowLocal(), status: 'draft',
-    mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '',
+    audience, mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '',
     preSolutions: [''], dice: [], reflections: [], observationReflection: '', sharedInterpretation: '', jointSolution: '',
     nextAction: '', nextActionSummary: '', selReflection: '', selTags: [],
   }
@@ -195,16 +210,27 @@ function TrigramImages({ id, hexagram }) {
   </div>
 }
 
-function Card({ title, data, id }) {
+function AudienceSelector({ audience, onChange, className = '' }) {
+  const currentAudience = getAudience({ audience })
+  return <div className={`audience-selector ${className}`} role="group" aria-label="金句版本">
+    <span className="audience-label">金句版本</span>
+    <div className="audience-options">
+      {AUDIENCE_OPTIONS.map((option) => <button key={option.value} className={currentAudience === option.value ? 'active' : ''} type="button" aria-pressed={currentAudience === option.value} onClick={() => onChange(option.value)}>{option.label}</button>)}
+    </div>
+  </div>
+}
+
+function Card({ title, data, id, audience }) {
   const [back, setBack] = useState(false)
   const [expanded, setExpanded] = useState(false)
   if (!data) return <div className="notice error">找不到卦象資料，請返回檢查骰子結果。</div>
-  const selTags = [...new Set([data.sel1, data.sel2].filter(Boolean))]
+  const { judgement1, judgement2, sel1, sel2 } = getAudienceFields(data, audience)
+  const selTags = [...new Set([sel1, sel2].filter(Boolean))]
   return <article className={`hex-card ${back ? 'is-back' : ''}`}>
     <div className="card-topline"><span>{title}</span><span>第 {data.seq} 卦</span></div>
     {back ? <div className="card-content">
       <p className="card-title">{data.hexagram}</p>
-      <p className="quote">「{data.judgement1}」<br />「{data.judgement2}」</p>
+      <p className="quote">「{judgement1}」<br />「{judgement2}」</p>
       <div className="tag-list">{selTags.map((tag) => <span className="tag" key={tag}>{tag}</span>)}</div>
       <button className="text-button" onClick={() => setExpanded(!expanded)} aria-expanded={expanded}>{expanded ? '收起大象辭' : '展開大象辭'}</button>
       {expanded && <p className="commentary">{data.commentary}</p>}
@@ -301,20 +327,23 @@ function OfficialAccountLinks() {
   return <div className="official-account-links"><p className="official-account-intro">立即加入「SEL易想天開」官方社群，掃描 QR code 或點選網址，接收最新活動與學習資源。</p>{accounts.map((account) => <article className="official-account" key={account.url}><a className="official-account-qr" href={account.url} target="_blank" rel="noreferrer" aria-label={`開啟${account.name}`}><img src={account.image} alt={account.alt} /></a><div className="official-account-details"><h4>{account.name}</h4><a className="official-account-url" href={account.url} target="_blank" rel="noreferrer">網址：{account.url}</a></div></article>)}</div>
 }
 
-function HexagramCarryover({ calculation }) {
+function HexagramCarryover({ calculation, audience }) {
   if (!calculation?.original || !calculation?.comprehensive) return null
   const items = [
     ['本卦', calculation.original, calculation.originalId],
     [calculation.pairTitle, calculation.comprehensive, calculation.comprehensiveId],
   ]
   return <div className="hexagram-carryover" aria-label="本卦與配對卦摘要">
-    {items.map(([title, data, id]) => <article key={title}>
-      <span>{title}</span>
-      <strong>第 {data.seq} 卦 · {data.hexagram}</strong>
-      <TrigramImages id={id} hexagram={data.hexagram} />
-      <p>「{data.judgement1}」 &nbsp;&nbsp;&nbsp;「{data.judgement2}」</p>
-      <p>大象辭：{data.commentary}</p>
-    </article>)}
+    {items.map(([title, data, id]) => {
+      const { judgement1, judgement2 } = getAudienceFields(data, audience)
+      return <article key={title}>
+        <span>{title}</span>
+        <strong>第 {data.seq} 卦 · {data.hexagram}</strong>
+        <TrigramImages id={id} hexagram={data.hexagram} />
+        <p>「{judgement1}」 &nbsp;&nbsp;&nbsp;「{judgement2}」</p>
+        <p>大象辭：{data.commentary}</p>
+      </article>
+    })}
   </div>
 }
 
@@ -416,6 +445,7 @@ function DiceStep({ journal, update }) {
 
 function ResultsStep({ journal }) {
   const calculation = getCalculation(journal.dice)
+  const audience = getAudience(journal)
   const [isGuideOpen, setIsGuideOpen] = useState(false)
   const guideButtonRef = useRef(null)
   const closeGuide = () => {
@@ -424,7 +454,7 @@ function ResultsStep({ journal }) {
   }
   const guideButton = <><button ref={guideButtonRef} className="secondary guide-button" onClick={() => setIsGuideOpen(true)}>卜卦解卦指南</button>{isGuideOpen && <GuideDialog onClose={closeGuide} />}</>
   if (!calculation) return <section className="step-section"><div className="eyebrow">第 5 步，共 8 步：卦象結果</div><h2>起卦得到的本卦與綜卦／錯卦</h2><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="notice error">請先完成六次擲骰，才能檢視卦象結果。</div></section>
-  return <section className="step-section"><div className="eyebrow">第 5 步，共 8 步：卦象結果</div><h2>起卦得到的本卦與綜卦／錯卦</h2><p className="helper">翻閱兩張牌卡，讓金句、SEL 連結與大象辭帶來新的觀看角度。</p><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="card-grid"><Card title="本卦" data={calculation.original} id={calculation.originalId} /><Card title={calculation.pairTitle} data={calculation.comprehensive} id={calculation.comprehensiveId} /></div></section>
+  return <section className="step-section"><div className="eyebrow">第 5 步，共 8 步：卦象結果</div><h2>起卦得到的本卦與綜卦／錯卦</h2><p className="helper">翻閱兩張牌卡，讓金句、SEL 連結與大象辭帶來新的觀看角度。</p><CurrentQuestion question={journal.questionText} /><div className="step-guide-action">{guideButton}</div><div className="card-grid"><Card title="本卦" data={calculation.original} id={calculation.originalId} audience={audience} /><Card title={calculation.pairTitle} data={calculation.comprehensive} id={calculation.comprehensiveId} audience={audience} /></div></section>
 }
 
 function GuideDialog({ onClose }) {
@@ -467,9 +497,10 @@ function GuideDialog({ onClose }) {
 
 function ReflectionsStep({ journal, update }) {
   const calculation = getCalculation(journal.dice)
+  const audience = getAudience(journal)
   const observationReflection = getObservationReflection(journal)
   return <section className="step-section"><div className="eyebrow">第 6 步，共 8 步：觀象反思</div><h2>受卦象啟發，提出新的解決方案</h2><p className="helper">個人／小組共同根據本卦和綜/錯卦的卦象和金句，對設定問題進行反思。</p><CurrentQuestion question={journal.questionText} />
-    <HexagramCarryover calculation={calculation} />
+    <HexagramCarryover calculation={calculation} audience={audience} />
     <article className="reflection-card"><h3>個人／小組根據本卦和綜/錯卦的卦象和金句的啟發，對設定問題提出新的解決方案</h3><textarea rows="10" value={observationReflection} placeholder="請記錄個人／小組根據本卦和綜/錯卦的卦象和金句的觀察與思考後，對設定問題所產生新的解決方案。" aria-label="觀象反思" onChange={(event) => update({ observationReflection: event.target.value })} /></article>
   </section>
 }
@@ -516,10 +547,14 @@ function AiReflectionPanel({ journal, calculation }) {
 const valueOrBlank = (value) => clean(value || '') || '尚未填寫'
 function JournalPreview({ journal, previewRef }) {
   const result = getCalculation(journal.dice)
+  const audience = getAudience(journal)
   const observationReflection = getObservationReflection(journal)
   const isGroupLearning = journal.mode === 'group'
   const memberNames = journal.members.filter(clean).join('、')
-  const hexSection = (title, data, id) => <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{data.judgement1}；{data.judgement2}</p><p>SEL：{data.sel1}、{data.sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
+  const hexSection = (title, data, id) => {
+    const { judgement1, judgement2, sel1, sel2 } = getAudienceFields(data, audience)
+    return <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{judgement1}；{judgement2}</p><p>SEL：{sel1}、{sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
+  }
   return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {isGroupLearning ? '小組學習' : '個人學習'}</p>{isGroupLearning && <><p>組別名稱：{valueOrBlank(journal.groupName)}</p><p>成員：{memberNames || '尚未填寫'}</p></>}</header>
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
@@ -764,6 +799,7 @@ function App() {
   const [journals, setJournals] = useState(() => { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] } catch { return [] } })
   const [activeId, setActiveId] = useState(null)
   const [step, setStep] = useState(0)
+  const [homeAudience, setHomeAudience] = useState('adult')
   const [saveState, setSaveState] = useState('已儲存')
   const [isSelDialogOpen, setIsSelDialogOpen] = useState(false)
   const [isUserGuideOpen, setIsUserGuideOpen] = useState(false)
@@ -772,7 +808,7 @@ function App() {
   const active = journals.find((item) => item.journalId === activeId)
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); setSaveState('已儲存') } catch { setSaveState('儲存失敗') } }, [journals])
   const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => item.journalId === activeId ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)) }
-  const start = (journal = createJournal(), startingStep = 0) => { setJournals((items) => items.some((item) => item.journalId === journal.journalId) ? items : [journal, ...items]); setActiveId(journal.journalId); setStep(startingStep) }
+  const start = (journal = createJournal(homeAudience), startingStep = 0) => { setJournals((items) => items.some((item) => item.journalId === journal.journalId) ? items : [journal, ...items]); setActiveId(journal.journalId); setStep(startingStep) }
   const remove = (id) => { if (window.confirm('確定刪除這份學習日誌嗎？')) setJournals((items) => items.filter((item) => item.journalId !== id)) }
   const duplicate = (journal) => { const copy = { ...journal, journalId: makeId(), status: 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; start(copy) }
   const canProceed = () => !active || step !== 1 || Boolean(clean(active.questionText))
@@ -783,13 +819,13 @@ function App() {
   <p><b>建立新日誌</b>: 透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
   <p><b>易解心結</b>: 「易解心結」快速鍵，專門針對老師與學生一對一、處理學生間矛盾和家長問題所設計。
 直接進入「擲骰起卦」得到兩個互補的卦與四個金句，促進換位思考、自我覺察，共同化解矛盾並找到新的行動方案。</p>
-  </div><div className="home-hero-actions"><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(), 3)}>易解心結</button></div></div></header>
+  </div><div className="home-hero-actions"><AudienceSelector audience={homeAudience} onChange={setHomeAudience} className="home-audience-selector" /><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(homeAudience), 3)}>易解心結</button></div></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
     {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isUntieKnotDialogOpen && <UntieTheKnotDialog onClose={() => setIsUntieKnotDialogOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
 
   const stepContent = [<BasicStep key="basic" journal={active} update={update} />, <QuestionStep key="question" journal={active} update={update} />, <SolutionsStep key="solutions" journal={active} update={update} />, <DiceStep key="dice" journal={active} update={update} />, <ResultsStep key="results" journal={active} />, <ReflectionsStep key="reflections" journal={active} update={update} />, <IntegrationStep key="integration" journal={active} update={update} />, <ExportStep key="export" journal={active} complete={complete} />][step]
-  return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions">
+  return <main className="app-shell"><header className="app-header no-print"><button className="brand" onClick={() => setActiveId(null)} aria-label="返回日誌列表"><span>易</span><b>易想天開</b></button><div className="header-actions"><AudienceSelector audience={getAudience(active)} onChange={(audience) => update({ audience })} className="header-audience-selector" />
     <button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><a className="sel-link" href="https://drive.google.com/drive/folders/1tjmzw8dopvKM_Gi_Q_piucDivz9bXHTb" target="_blank" rel="noreferrer">21世紀周易新解</a><div className="save-status"><i className={saveState === '已儲存' ? 'saved' : ''} />{saveState}</div><button className="exit-button" onClick={() => setActiveId(null)}>暫存離開</button></div></header>
     <div className="editor-layout"><aside className="step-nav no-print">{STEPS.map((name, index) => <button key={name} className={step === index ? 'active' : index < step ? 'done' : ''} onClick={() => setStep(index)}><span>{index < step ? '✓' : index + 1}</span>{name}</button>)}</aside>
       <div className="editor-main"><div className="mobile-progress no-print"><span>步驟 {step + 1}／8</span><strong>{STEPS[step]}</strong><div><i style={{ width: `${((step + 1) / 8) * 100}%` }} /></div></div>{stepContent}
