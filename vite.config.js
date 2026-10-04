@@ -1,8 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-// https://vite.dev/config/
+// GitHub Pages is hosted at /selchange/.
+// EdgeOne Pages uses the domain root (/).
 export default defineConfig({
   plugins: [react()],
-  base: '/selchange/',
+  base: process.env.DEPLOY_TARGET === 'edgeone' ? '/' : '/selchange/',
 })
