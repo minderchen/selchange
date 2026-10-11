@@ -1085,3 +1085,10 @@
     padding-top:1rem;
   }
 }
+
+.hero-resources { max-width:440px; margin-top:1.5rem; padding:1rem 1.2rem; background:rgba(255,255,255,.12); border-left:4px solid #e4c77c; border-radius:8px; color:#fff; }
+.hero-resources p { margin:0 0 .5rem; color:#e4c77c; }
+.hero-resources ol { margin:0; padding-left:1.4rem; line-height:1.9; }
+.hero-resources a { color:#fff; font-weight:700; text-decoration:underline; text-underline-offset:3px; }
+.hero-resources a:hover, .hero-resources a:focus-visible { color:#ffe6a3; }
+.hero-resources a:visited { color:#e6d9ff; }
