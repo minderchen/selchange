@@ -819,17 +819,15 @@ function App() {
   <p><b>建立新日誌</b>: 透過循序漸進的引導，協助設定問題、提出初步解方，到擲骰起卦、觀察卦象並提出新的解決方案；接著運用 AI 解讀卦象，連結 SEL 反思，形成行動方案，最後完成學習紀錄。</p>
   <p><b>易解心結</b>: 「易解心結」快速鍵，專門針對老師與學生一對一、處理學生間矛盾和家長問題所設計。
 直接進入「擲骰起卦」得到兩個互補的卦與四個金句，促進換位思考、自我覺察，共同化解矛盾並找到新的行動方案。</p>
-<p>經典創新工作坊 提供相關SEL教學資源 </p>
-<p> 
-<b></b>  
-<ol>
-  <li><a href="https://sites.google.com/view/innovative-classic" target="_blank" rel="noreferrer">高中古文－SEL教學資源</a>  
-  </li>  
-  <li><a href="https://drive.google.com/drive/folders/1nANddg1a_21ggJMHdxx2dFi7c7o-OJ0D" target="_blank" rel="noreferrer">國中古文－SEL教學資源</a>  
-  </li>  
-</ol>  
-</p>
-  </div><div className="home-hero-actions"><AudienceSelector audience={homeAudience} onChange={setHomeAudience} className="home-audience-selector" /><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(homeAudience), 3)}>易解心結</button></div></div></header>
+<section className="hero-resources">
+  <p><b>經典創新工作坊 提供相關SEL教學資源</b></p>
+  <ol>
+    <li><a href="https://sites.google.com/view/innovative-classic" target="_blank" rel="noreferrer">高中古文－SEL教學資源</a></li>
+    <li><a href="https://drive.google.com/drive/folders/1nANddg1a_21ggJMHdxx2dFi7c7o-OJ0D" target="_blank" rel="noreferrer">國中古文－SEL教學資源</a></li>
+  </ol>
+</section>
+  </div>
+  <div className="home-hero-actions"><AudienceSelector audience={homeAudience} onChange={setHomeAudience} className="home-audience-selector" /><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(homeAudience), 3)}>易解心結</button></div></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
     {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isUntieKnotDialogOpen && <UntieTheKnotDialog onClose={() => setIsUntieKnotDialogOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
