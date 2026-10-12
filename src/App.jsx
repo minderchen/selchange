@@ -687,7 +687,12 @@ function CardPurchaseDialog({ onClose }) {
       <header className="purchase-dialog-header"><h2 id="purchase-dialog-title">「SEL易想天開」卡牌</h2><button ref={closeButtonRef} className="icon-button" aria-label="關閉購買卡牌資訊" onClick={onClose}>×</button></header>
       <div className="purchase-dialog-content">
         <img src={cardSetImage} alt="SEL易想天開卡牌組，包含卡盒、卡牌與卦象說明卡" />
-        <div className="purchase-details"><p className="purchase-price">每套500元，麻煩匯款</p><dl><div><dt>台新銀行西門分行</dt><dd>061 10 0182304 00</dd><dd>蘇秋錦</dd></div></dl><p>匯款之後提供匯款帳號後四碼<br />同時提供手機號碼，地址<br /><a href="mailto:ellischang95@gmail.com">Email 給 ellischang95@gmail.com</a><br />我們會儘快安排出貨</p></div>
+        <div className="purchase-details"><p className="purchase-price">每套500元，麻煩匯款</p>
+        <p>匯款資訊：</p>
+        <dl><div><dt>台新銀行西門分行</dt><dd>061 10 0182304 00</dd><dd>蘇秋錦</dd></div></dl>
+        <p>若是需要統編，請滙款到以下帳號：</p>
+         <dl><div><dt>第一銀行007 林口工二分行</dt><dd>銀行帳戶: 20810022021</dd><dd>戶名:「愛的影響力文教有限公司」</dd></div></dl>
+        <p>匯款之後提供匯款帳號後四碼<br />同時提供手機號碼，地址<br /><a href="mailto:ellischang95@gmail.com">Email 給 ellischang95@gmail.com</a><br />我們會儘快安排出貨</p></div>
       </div>
     </section>
   </div>
