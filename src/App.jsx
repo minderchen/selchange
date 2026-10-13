@@ -690,7 +690,7 @@ function CardPurchaseDialog({ onClose }) {
         <div className="purchase-details"><p className="purchase-price">每套500元，麻煩匯款</p>
         <p>匯款資訊：</p>
         <dl><div><dt>台新銀行西門分行</dt><dd>061 10 0182304 00</dd><dd>蘇秋錦</dd></div></dl>
-        <p>若是需要統編，請滙款到以下帳號：</p>
+        <p>若是需要統編，我們會開含統一編號的電子發票，請加5%營業稅後，請滙款525元到以下帳號：</p>
          <dl><div><dt>第一銀行007 林口工二分行</dt><dd>銀行帳戶: 20810022021</dd><dd>戶名:「愛的影響力文教有限公司」</dd></div></dl>
         <p>匯款之後提供匯款帳號後四碼<br />同時提供手機號碼，地址<br /><a href="mailto:ellischang95@gmail.com">Email 給 ellischang95@gmail.com</a><br />我們會儘快安排出貨</p></div>
       </div>
