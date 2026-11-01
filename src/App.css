@@ -90,6 +90,74 @@
   max-height:70px;
 }
 
+.changing-hexagram {
+  margin:0 0 1.4rem;
+  padding:1.2rem;
+  background:#fff;
+  border:1px solid var(--line);
+  border-top:4px solid var(--gold);
+  border-radius:8px;
+}
+
+.changing-hexagram > p {
+  line-height:1.7;
+}
+
+.changing-hexagram-reminder {
+  color:var(--muted);
+}
+
+.changing-hexagram-result {
+  margin-top:1.2rem;
+}
+
+.changing-line-description {
+  color:var(--teal);
+  font-weight:800;
+}
+
+.changing-hexagram-card {
+  min-width:0;
+  padding:1rem;
+  background:#f7faf8;
+  border:1px solid var(--line);
+  border-radius:8px;
+}
+
+.changing-hexagram-card h4 {
+  margin:0 0 .4rem;
+  color:var(--teal);
+}
+
+.changing-hexagram-card p {
+  margin:.4rem 0;
+  line-height:1.6;
+}
+
+.changing-hexagram-card .hexagram-lines {
+  width:min(190px,100%);
+  margin:1rem 0;
+}
+
+.changing-hexagram-card .trigram-images {
+  justify-content:start;
+  margin:.65rem 0;
+}
+
+.changing-hexagram-card .trigram-images img {
+  width:clamp(34px,5vw,46px);
+  max-height:70px;
+}
+
+.line-row.is-changing > span {
+  color:#a33c30;
+  font-weight:800;
+}
+
+.line-row.is-changing .yao i {
+  background:#b14330;
+}
+
 @media (max-width:767px) {
   .hexagram-carryover {
     grid-template-columns:1fr;

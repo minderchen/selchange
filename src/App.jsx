@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import hexagrams from './data/hexagrams.json'
 import presetQuestions from './data/preset-questions.json'
+import { changeHexagramId, drawChangingLine } from './changingHexagram.js'
 import userGuideMarkdown from '../使用指南.md?raw'
 import lineQrCode from './assets/Line.jpg'
 import facebookQrCode from './assets/Facebook.jpg'
@@ -158,7 +159,7 @@ const createJournal = (audience = 'adult') => {
     journalId: makeId(), schemaVersion: '1.0', hexagramDataVersion: 'Hexagram.xlsx',
     createdAt: created, updatedAt: created, activityAt: nowLocal(), status: 'draft',
     audience, mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '', emotions: [],
-    preSolutions: [''], dice: [], reflections: [], observationReflection: '', sharedInterpretation: '', jointSolution: '',
+    preSolutions: [''], dice: [], changingHexagram: null, reflections: [], observationReflection: '', sharedInterpretation: '', jointSolution: '',
     nextAction: '', nextActionSummary: '', selReflection: '', selTags: [],
   }
 }
@@ -179,7 +180,18 @@ function getCalculation(dice) {
   }
 }
 
-function HexagramLines({ id, partialDice = [], labelled = false }) {
+function getChangingResult(calculation, selection) {
+  if (!selection || !calculation || selection.originalId !== calculation.originalId) return null
+  if (!/^[01]{6}$/.test(calculation.originalId) || !Number.isInteger(selection.line) || selection.line < 1 || selection.line > 6) {
+    return { error: '已儲存的變爻資料無效，請重新產生變卦。' }
+  }
+  const id = changeHexagramId(calculation.originalId, selection.line)
+  const data = hexagrams.find((item) => item.id === id)
+  if (!data) return { error: `找不到變卦 ID ${id} 的資料，請檢查卦象資料。` }
+  return { id, data, line: selection.line, originalBit: calculation.originalId[6 - selection.line] }
+}
+
+function HexagramLines({ id, partialDice = [], labelled = false, changingLine = null }) {
   const items = Array.from({ length: 6 }, (_, index) => {
     const lineNo = 6 - index
     const bit = id
@@ -191,9 +203,9 @@ function HexagramLines({ id, partialDice = [], labelled = false }) {
   })
   return <div className={`hexagram-lines ${labelled ? 'is-labelled' : ''}`} aria-label={id ? `卦象 ${id}` : '目前累積卦象'}>
     {items.map(({ bit, lineNo, name }) => (
-      <div className="line-row" key={lineNo}>
+      <div className={`line-row ${lineNo === changingLine ? 'is-changing' : ''}`} key={lineNo}>
         {labelled && <span>{name}</span>}
-        <div className={`yao ${bit === '0' ? 'yin' : bit === '1' ? 'yang' : 'empty'}`} aria-label={bit ? `${name}：${bit === '1' ? '陽' : '陰'}` : `${name}：尚未擲骰`}>
+        <div className={`yao ${bit === '0' ? 'yin' : bit === '1' ? 'yang' : 'empty'}`} aria-label={bit ? `${name}：${bit === '1' ? '陽' : '陰'}${lineNo === changingLine ? '（變爻）' : ''}` : `${name}：尚未擲骰`}>
           <i /><i />
         </div>
       </div>
@@ -530,7 +542,47 @@ function ReflectionsStep({ journal, update }) {
   const observationReflection = getObservationReflection(journal)
   return <section className="step-section"><div className="eyebrow">第 6 步，共 8 步：觀象反思</div><h2>受卦象啟發，提出新的解決方案</h2><p className="helper">個人／小組共同根據本卦和綜/錯卦的卦象和金句，對設定問題進行反思。</p><CurrentQuestion question={journal.questionText} />
     <HexagramCarryover calculation={calculation} audience={audience} />
+    <ChangingHexagram calculation={calculation} selection={journal.changingHexagram} audience={audience} update={update} />
     <article className="reflection-card"><h3>個人／小組根據本卦和綜/錯卦的卦象和金句的啟發，對設定問題提出新的解決方案</h3><textarea rows="10" value={observationReflection} placeholder="請記錄個人／小組根據本卦和綜/錯卦的卦象和金句的觀察與思考後，對設定問題所產生新的解決方案。" aria-label="觀象反思" onChange={(event) => update({ observationReflection: event.target.value })} /></article>
+  </section>
+}
+
+function ChangingHexagram({ calculation, selection, audience, update }) {
+  const [error, setError] = useState('')
+  const result = getChangingResult(calculation, selection)
+
+  const generate = () => {
+    if (!calculation?.original) {
+      setError('請先完成六次擲骰並確認本卦資料。')
+      return
+    }
+    if (!globalThis.crypto?.getRandomValues) {
+      setError('此瀏覽器無法產生隨機變爻，請使用支援安全隨機數的瀏覽器。')
+      return
+    }
+    const line = drawChangingLine((sample) => globalThis.crypto.getRandomValues(sample))
+    const nextSelection = { originalId: calculation.originalId, line }
+    const nextResult = getChangingResult(calculation, nextSelection)
+    if (nextResult.error) {
+      setError(nextResult.error)
+      return
+    }
+    setError('')
+    update({ changingHexagram: nextSelection })
+  }
+
+  const fields = result?.data ? getAudienceFields(result.data, audience) : null
+  return <section className="changing-hexagram" aria-labelledby="changing-hexagram-title">
+    <h3 id="changing-hexagram-title">變卦</h3>
+    <p>從本卦的六爻中隨機選出一爻，將陰陽互換，形成變卦。透過不同卦象，思考情境可能如何改變，以及自己可以如何調整與回應。</p>
+    <p className="changing-hexagram-reminder">變卦提供反思與探索的方向，不代表未來一定會發生。</p>
+    <button className="primary" type="button" onClick={generate} disabled={!calculation?.original}>產生變卦</button>
+    {!calculation?.original && <p className="field-hint">請先完成六次擲骰，才能產生變卦。</p>}
+    {(error || result?.error) && <p className="notice error" role="alert">{error || result.error}</p>}
+    {result?.data && <div className="changing-hexagram-result" aria-live="polite">
+      <p className="changing-line-description">變爻：第 {result.line} 爻（{LINE_NAMES[result.line - 1]}），{result.originalBit === '1' ? '陽爻 → 陰爻' : '陰爻 → 陽爻'}</p>
+      <article className="changing-hexagram-card"><h4>變卦：第 {result.data.seq} 卦・{result.data.hexagram}</h4><HexagramLines id={result.id} labelled changingLine={result.line} /><TrigramImages id={result.id} hexagram={result.data.hexagram} /><p>「{fields.judgement1}」　「{fields.judgement2}」</p><p>大象辭：{result.data.commentary}</p></article>
+    </div>}
   </section>
 }
 
@@ -576,17 +628,20 @@ function AiReflectionPanel({ journal, calculation }) {
 const valueOrBlank = (value) => clean(value || '') || '尚未填寫'
 function JournalPreview({ journal, previewRef }) {
   const result = getCalculation(journal.dice)
+  const changing = getChangingResult(result, journal.changingHexagram)
   const audience = getAudience(journal)
   const observationReflection = getObservationReflection(journal)
   const isGroupLearning = journal.mode === 'group'
   const memberNames = journal.members.filter(clean).join('、')
-  const hexSection = (title, data, id) => {
+  const hexSection = (title, data, id, changingLine = null) => {
     const { judgement1, judgement2, sel1, sel2 } = getAudienceFields(data, audience)
-    return <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{judgement1}；{judgement2}</p><p>SEL：{sel1}、{sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
+    return <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} changingLine={changingLine} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong>{changingLine && title !== '變卦' && <p>ID：{id}</p>}<TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{judgement1}；{judgement2}</p><p>SEL：{sel1}、{sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
   }
   return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {isGroupLearning ? '小組學習' : '個人學習'}</p>{isGroupLearning && <><p>組別名稱：{valueOrBlank(journal.groupName)}</p><p>成員：{memberNames || '尚未填寫'}</p></>}</header>
     <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p>{journal.emotions?.length > 0 && <><h3>選擇的情緒</h3><p>{journal.emotions.join('、')}</p></>}<h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
-    {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
+    {hexSection('本卦', result?.original, result?.originalId, changing?.data ? changing.line : null)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
+    {changing?.data && <><section className="print-block"><h3>變爻</h3><p>第 {changing.line} 爻（{LINE_NAMES[changing.line - 1]}），{changing.originalBit === '1' ? '陽爻 → 陰爻' : '陰爻 → 陽爻'}</p><p>變卦提供反思與探索的方向，不代表未來一定會發生。</p></section>{hexSection('變卦', changing.data, changing.id, changing.line)}</>}
+    {changing?.error && <section className="print-block"><p className="notice error">{changing.error}</p></section>}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
     <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p></section>
     <section className="print-block"><h3>下一步行動和心得總結</h3><p>{valueOrBlank(journal.nextActionSummary)}</p></section>
@@ -841,7 +896,11 @@ function App() {
   const [isUntieKnotDialogOpen, setIsUntieKnotDialogOpen] = useState(false)
   const active = journals.find((item) => item.journalId === activeId)
   useEffect(() => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(journals)); setSaveState('已儲存') } catch { setSaveState('儲存失敗') } }, [journals])
-  const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => item.journalId === activeId ? { ...item, ...changes, updatedAt: new Date().toISOString() } : item)) }
+  const update = (changes) => { setSaveState('儲存中'); setJournals((items) => items.map((item) => {
+    if (item.journalId !== activeId) return item
+    const originalChanged = changes.dice && getCalculation(item.dice)?.originalId !== getCalculation(changes.dice)?.originalId
+    return { ...item, ...changes, ...(originalChanged ? { changingHexagram: null } : {}), updatedAt: new Date().toISOString() }
+  })) }
   const start = (journal = createJournal(homeAudience), startingStep = 0) => { setJournals((items) => items.some((item) => item.journalId === journal.journalId) ? items : [journal, ...items]); setActiveId(journal.journalId); setStep(startingStep) }
   const remove = (id) => { if (window.confirm('確定刪除這份學習日誌嗎？')) setJournals((items) => items.filter((item) => item.journalId !== id)) }
   const duplicate = (journal) => { const copy = { ...journal, journalId: makeId(), status: 'draft', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }; start(copy) }
