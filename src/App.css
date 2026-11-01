@@ -50,6 +50,14 @@
   border-top-color:var(--coral);
 }
 
+.hexagram-carryover-label {
+  margin:0 0 .65rem;
+  color:#18272e;
+  font-size:1.25rem;
+  line-height:1.2;
+  text-align:center;
+}
+
 .hexagram-carryover span {
   display:block;
   margin-bottom:.4rem;

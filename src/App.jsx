@@ -330,13 +330,14 @@ function OfficialAccountLinks() {
 function HexagramCarryover({ calculation, audience }) {
   if (!calculation?.original || !calculation?.comprehensive) return null
   const items = [
-    ['本卦', calculation.original, calculation.originalId],
-    [calculation.pairTitle, calculation.comprehensive, calculation.comprehensiveId],
+    ['社會察覺', '本卦', calculation.original, calculation.originalId],
+    ['換位思考', calculation.pairTitle, calculation.comprehensive, calculation.comprehensiveId],
   ]
   return <div className="hexagram-carryover" aria-label="本卦與配對卦摘要">
-    {items.map(([title, data, id]) => {
+    {items.map(([label, title, data, id]) => {
       const { judgement1, judgement2 } = getAudienceFields(data, audience)
       return <article key={title}>
+        <h3 className="hexagram-carryover-label">{label}</h3>
         <span>{title}</span>
         <strong>第 {data.seq} 卦 · {data.hexagram}</strong>
         <TrigramImages id={id} hexagram={data.hexagram} />
