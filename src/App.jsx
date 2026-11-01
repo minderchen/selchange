@@ -830,6 +830,7 @@ function App() {
   <ol>
     <li><a href="https://sites.google.com/view/innovative-classic" target="_blank" rel="noreferrer">高中古文－SEL教學資源</a></li>
     <li><a href="https://drive.google.com/drive/folders/1nANddg1a_21ggJMHdxx2dFi7c7o-OJ0D" target="_blank" rel="noreferrer">國中古文－SEL教學資源</a></li>
+    <li><a href="https://www.youtube.com/@ChineseClassicsInnovation" target="_blank" rel="noreferrer">高中國中古文影片YouTube頻道</a></li>
   </ol>
 </section>
   </div>
