@@ -26,6 +26,12 @@ const AUDIENCE_OPTIONS = [
   { value: 'adult', label: '成人' },
   { value: 'kid', label: '國中／國小' },
 ]
+const EMOTIONS = [
+  { name: '開心', emoji: '😊' }, { name: '平靜', emoji: '😌' }, { name: '期待', emoji: '🤩' },
+  { name: '好奇', emoji: '🤔' }, { name: '驚訝', emoji: '😮' }, { name: '困惑', emoji: '😕' },
+  { name: '擔心', emoji: '😟' }, { name: '害怕', emoji: '😨' }, { name: '難過', emoji: '😢' },
+  { name: '煩躁', emoji: '😣' }, { name: '生氣', emoji: '😠' }, { name: '疲倦', emoji: '😩' },
+]
 const LINE_NAMES = ['初爻', '二爻', '三爻', '四爻', '五爻', '上爻']
 const STEPS = ['基本資料', '設定問題', '卜卦前解方', '擲骰起卦', '卦象結果', '觀象反思', 'AI解卦與行動', '預覽與匯出']
 const DIE_PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] }
@@ -151,7 +157,7 @@ const createJournal = (audience = 'adult') => {
   return {
     journalId: makeId(), schemaVersion: '1.0', hexagramDataVersion: 'Hexagram.xlsx',
     createdAt: created, updatedAt: created, activityAt: nowLocal(), status: 'draft',
-    audience, mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '',
+    audience, mode: 'individual', groupName: '', members: [], questionType: 'preset', questionSet: 'teachers', questionText: '', emotions: [],
     preSolutions: [''], dice: [], reflections: [], observationReflection: '', sharedInterpretation: '', jointSolution: '',
     nextAction: '', nextActionSummary: '', selReflection: '', selTags: [],
   }
@@ -285,7 +291,29 @@ function QuestionStep({ journal, update }) {
     </fieldset>
     {journal.questionType === 'preset' ? <div className="stack-fields"><label>大哉問題組<select value={selectedQuestionSet?.id || ''} onChange={(event) => { setIsQuestionPickerOpen(false); update({ questionSet: event.target.value, questionText: '' }) }}>{presetQuestions.map((set) => <option key={set.id} value={set.id}>{set.label}</option>)}</select></label><div className="question-picker-field" role="group" aria-labelledby="question-picker-label"><span id="question-picker-label">大哉問</span><button ref={questionPickerButtonRef} className="secondary question-picker-button" type="button" aria-haspopup="dialog" onClick={() => setIsQuestionPickerOpen(true)}>選擇題目</button></div><CurrentQuestion question={journal.questionText} label="已選大哉問" /></div> : <label>自訂問題<textarea value={journal.questionText} rows="5" placeholder="寫下你們要探索的問題..." onChange={(event) => update({ questionText: event.target.value })} /></label>}
     {!clean(journal.questionText) && <p className="field-hint">請先設定一項非空白問題，才能進入下一步。</p>}
+    {clean(journal.questionText) && <EmotionPicker emotions={journal.emotions || []} onConfirm={(emotions) => update({ emotions })} />}
     {isQuestionPickerOpen && <QuestionPickerDialog questionSet={selectedQuestionSet} onClose={closeQuestionPicker} onSelect={selectQuestion} />}
+  </section>
+}
+
+function EmotionPicker({ emotions, onConfirm }) {
+  const [selected, setSelected] = useState(emotions)
+  const hasChanges = selected.length !== emotions.length || selected.some((emotion, index) => emotion !== emotions[index])
+
+  const toggleEmotion = (name) => {
+    setSelected((current) => current.includes(name)
+      ? current.filter((emotion) => emotion !== name)
+      : current.length < 2 ? [...current, name] : current)
+  }
+
+  return <section className="emotion-picker" aria-labelledby="emotion-picker-title">
+    <div className="emotion-picker-heading"><h3 id="emotion-picker-title">想到目前想解決的問題，你現在最明顯的感受是什麼？</h3><p>可選擇最多兩種感受，以反映混合情緒。</p></div>
+    <div className="emotion-grid" role="group" aria-labelledby="emotion-picker-title">
+      {EMOTIONS.map(({ name, emoji }) => <button key={name} type="button" className={selected.includes(name) ? 'selected' : ''} aria-pressed={selected.includes(name)} disabled={selected.length === 2 && !selected.includes(name)} onClick={() => toggleEmotion(name)}><span aria-hidden="true">{emoji}</span> {name}</button>)}
+    </div>
+    <button className="primary emotion-confirm" type="button" disabled={!hasChanges} onClick={() => onConfirm(selected)}>確認選擇的情緒 →</button>
+    <label className="emotion-result">你選擇的情緒：<input type="text" readOnly value={emotions.join('、')} placeholder="尚未選擇" /></label>
+    {hasChanges && <p className="field-hint">請點選「確認選擇的情緒」儲存變更。</p>}
   </section>
 }
 
@@ -557,7 +585,7 @@ function JournalPreview({ journal, previewRef }) {
     return <section className="print-block"><h3>{title}</h3>{data ? <><div className="preview-hex"><HexagramLines id={id} /><div><strong>第 {data.seq} 卦 · {data.hexagram}</strong><TrigramImages id={id} hexagram={data.hexagram} /><p>{data.imagetext}</p></div></div><p>金句：{judgement1}；{judgement2}</p><p>SEL：{sel1}、{sel2}</p><p>大象辭：{data.commentary}</p></> : <p>尚未完成六爻</p>}</section>
   }
   return <div className="journal-preview" ref={previewRef}><header><p className="eyebrow">SEL 易想天開</p><h1>學習日誌</h1><p>{formatDate(journal.activityAt)} · {isGroupLearning ? '小組學習' : '個人學習'}</p>{isGroupLearning && <><p>組別名稱：{valueOrBlank(journal.groupName)}</p><p>成員：{memberNames || '尚未填寫'}</p></>}</header>
-    <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p><h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
+    <section className="print-block"><h3>問題</h3><p>{valueOrBlank(journal.questionText)}</p>{journal.emotions?.length > 0 && <><h3>選擇的情緒</h3><p>{journal.emotions.join('、')}</p></>}<h3>卜卦前的解方</h3><ol>{journal.preSolutions.filter(clean).length ? journal.preSolutions.filter(clean).map((item, index) => <li key={index}>{item}</li>) : <li>尚未填寫</li>}</ol></section>
     {hexSection('本卦', result?.original, result?.originalId)}{hexSection('綜卦', result?.comprehensive, result?.comprehensiveId)}
     <section className="print-block"><h3>觀象反思</h3><p>{valueOrBlank(observationReflection)}</p></section>
     <section className="print-block"><h3>AI解卦</h3><p>AI解卦：{valueOrBlank(journal.sharedInterpretation)}</p></section>
