@@ -9,6 +9,7 @@ import logoImage from './assets/SEL-Change_Logo.jpg'
 import selSlideImage from './assets/SEL-Change_Slide.jpg'
 import untieTheKnotImage from './assets/untie_the_knot.png'
 import untieKnotImage from './assets/untie_knot.jpg'
+import changingHexagramGuideImage from './assets/changing-hexagram-guide.png'
 import cardSetImage from './assets/SEL-Change-Card-Set.jpg'
 import aiSoftskillImage1 from './assets/AI_softskill1.jpg'
 import aiSoftskillImage2 from './assets/AI_softskill2.jpg'
@@ -370,8 +371,8 @@ function OfficialAccountLinks() {
 function HexagramCarryover({ calculation, audience }) {
   if (!calculation?.original || !calculation?.comprehensive) return null
   const items = [
-    ['社會察覺', '本卦', calculation.original, calculation.originalId],
-    ['換位思考', calculation.pairTitle, calculation.comprehensive, calculation.comprehensiveId],
+    ['自我管理', '本卦', calculation.original, calculation.originalId],
+    ['社會覺察、換位思考', calculation.pairTitle, calculation.comprehensive, calculation.comprehensiveId],
   ]
   return <div className="hexagram-carryover" aria-label="本卦與配對卦摘要">
     {items.map(([label, title, data, id]) => {
@@ -549,7 +550,14 @@ function ReflectionsStep({ journal, update }) {
 
 function ChangingHexagram({ calculation, selection, audience, update }) {
   const [error, setError] = useState('')
+  const [isGuideOpen, setIsGuideOpen] = useState(false)
+  const guideButtonRef = useRef(null)
   const result = getChangingResult(calculation, selection)
+
+  const closeGuide = () => {
+    setIsGuideOpen(false)
+    window.setTimeout(() => guideButtonRef.current?.focus(), 0)
+  }
 
   const generate = () => {
     if (!calculation?.original) {
@@ -576,14 +584,41 @@ function ChangingHexagram({ calculation, selection, audience, update }) {
     <h3 id="changing-hexagram-title">變卦</h3>
     <p>從本卦的六爻中隨機選出一爻，將陰陽互換，形成變卦。透過不同卦象，思考情境可能如何改變，以及自己可以如何調整與回應。</p>
     <p className="changing-hexagram-reminder">變卦提供反思與探索的方向，不代表未來一定會發生。</p>
-    <button className="primary" type="button" onClick={generate} disabled={!calculation?.original}>產生變卦</button>
+    <div className="changing-hexagram-actions">
+      <button className="primary" type="button" onClick={generate} disabled={!calculation?.original}>產生變卦</button>
+      <button ref={guideButtonRef} className="sel-link" type="button" aria-haspopup="dialog" onClick={() => setIsGuideOpen(true)}>什麼是變卦和爻變</button>
+    </div>
     {!calculation?.original && <p className="field-hint">請先完成六次擲骰，才能產生變卦。</p>}
     {(error || result?.error) && <p className="notice error" role="alert">{error || result.error}</p>}
     {result?.data && <div className="changing-hexagram-result" aria-live="polite">
       <p className="changing-line-description">變爻：第 {result.line} 爻（{LINE_NAMES[result.line - 1]}），{result.originalBit === '1' ? '陽爻 → 陰爻' : '陰爻 → 陽爻'}</p>
       <article className="changing-hexagram-card"><h4>變卦：第 {result.data.seq} 卦・{result.data.hexagram}</h4><HexagramLines id={result.id} labelled changingLine={result.line} /><TrigramImages id={result.id} hexagram={result.data.hexagram} /><p>「{fields.judgement1}」　「{fields.judgement2}」</p><p>大象辭：{result.data.commentary}</p></article>
     </div>}
+    {isGuideOpen && <ChangingHexagramGuideDialog onClose={closeGuide} />}
   </section>
+}
+
+function ChangingHexagramGuideDialog({ onClose }) {
+  const closeButtonRef = useRef(null)
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose()
+      if (event.key === 'Tab') {
+        event.preventDefault()
+        closeButtonRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  return <div className="sel-dialog-backdrop no-print" role="presentation" onMouseDown={onClose}>
+    <section className="sel-dialog changing-hexagram-guide-dialog" role="dialog" aria-modal="true" aria-labelledby="changing-hexagram-guide-title" onMouseDown={(event) => event.stopPropagation()}>
+      <header className="sel-dialog-header"><h2 id="changing-hexagram-guide-title">什麼是變卦和爻變</h2><button ref={closeButtonRef} className="icon-button" type="button" aria-label="關閉變卦和爻變說明" onClick={onClose}>×</button></header>
+      <img src={changingHexagramGuideImage} alt="爻變說明：隨機改變本卦的一爻形成變卦，探索未來可能的情境，並思考如何調整自己與採取行動。" />
+    </section>
+  </div>
 }
 
 function IntegrationStep({ journal, update }) {

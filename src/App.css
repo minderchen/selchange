@@ -107,6 +107,20 @@
   color:var(--muted);
 }
 
+.changing-hexagram-actions {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.75rem 1rem;
+}
+
+.changing-hexagram-guide-dialog img {
+  display:block;
+  width:100%;
+  height:auto;
+  margin-top:1rem;
+}
+
 .changing-hexagram-result {
   margin-top:1.2rem;
 }
