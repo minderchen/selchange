@@ -29,7 +29,7 @@ const AUDIENCE_OPTIONS = [
   { value: 'kid', label: '國中／國小' },
 ]
 const EMOTIONS = [
-  { name: '開心', emoji: '😊' }, { name: '平靜', emoji: '😌' }, { name: '期待', emoji: '🤩' },
+  { name: '說不清楚', emoji: '😕' }, { name: '平靜', emoji: '😌' }, { name: '挫折', emoji: '😣' },
   { name: '好奇', emoji: '🤔' }, { name: '驚訝', emoji: '😮' }, { name: '困惑', emoji: '😕' },
   { name: '擔心', emoji: '😟' }, { name: '害怕', emoji: '😨' }, { name: '難過', emoji: '😢' },
   { name: '煩躁', emoji: '😣' }, { name: '生氣', emoji: '😠' }, { name: '疲倦', emoji: '😩' },
@@ -63,7 +63,7 @@ const USER_GUIDE_SECTIONS = userGuideSectionBlocks.map((block) => {
 })
 
 const clean = (value) => value.trim()
-const buildAiReflectionPrompt = ({ question, originalName, pairName }) => `你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
+const buildAiReflectionPrompt = ({ question, originalName, pairName, changingName }) => `你是一位熟悉《易經》哲學、決策思維與社會情緒學習（SEL）的智慧引導者。
 
 請根據以下資訊，回應使用者的問題, 回答總長度請控制在 350–400 字內，最多不得超過 400 字。請精簡、避免重複。
 
@@ -77,7 +77,11 @@ ${originalName}
 
 ### 【綜卦/錯卦】
 
-${pairName}
+${pairName}${changingName ? `
+
+### 【變卦】
+
+${changingName}` : ''}
 
 請以「本卦」作為主要分析依據，運用本卦的核心思想回應使用者的「本次大哉問」。
 
@@ -89,7 +93,7 @@ ${pairName}
 * 思考可能的選擇及其後果；
 * 找到可以採取的下一步行動。
 
-如有助於深化理解，可以適度運用「綜卦」與「錯卦」，提供與本卦不同、相反或互補的觀點，但分析的核心仍應以「本卦」為主。
+如有助於深化理解，可以適度運用「綜卦/錯卦」${changingName ? '與「變卦」' : ''}，提供與本卦不同、相反或互補的觀點，但分析的核心仍應以「本卦」為主。${changingName ? '\n\n請參考變卦及變爻，探索情境可能的變化與可以調整的行動；變卦不代表未來必然發生。' : ''}
 
 接著，請將你的分析連結至以下 SEL 五大核心能力：
 
@@ -583,7 +587,7 @@ function ChangingHexagram({ calculation, selection, audience, update }) {
   return <section className="changing-hexagram" aria-labelledby="changing-hexagram-title">
     <h3 id="changing-hexagram-title">變卦</h3>
     <p>從本卦的六爻中隨機選出一爻，將陰陽互換，形成變卦。透過不同卦象，思考情境可能如何改變，以及自己可以如何調整與回應。</p>
-    <p className="changing-hexagram-reminder">變卦提供反思與探索的方向，不代表未來一定會發生。</p>
+    <p className="changing-hexagram-reminder">變卦提供反思與探索的方向，不代表未來一定會發生。「如果情況改變，我能調整什麼？」「有哪些人可以協助我？」</p>
     <div className="changing-hexagram-actions">
       <button className="primary" type="button" onClick={generate} disabled={!calculation?.original}>產生變卦</button>
       <button ref={guideButtonRef} className="sel-link" type="button" aria-haspopup="dialog" onClick={() => setIsGuideOpen(true)}>什麼是變卦和爻變</button>
@@ -636,12 +640,14 @@ function IntegrationStep({ journal, update }) {
   )
 }
 
-function AiReflectionPanel({ journal, calculation }) {
+export function AiReflectionPanel({ journal, calculation }) {
   const [copyStatus, setCopyStatus] = useState('')
   const question = clean(journal.questionText) || '尚未填寫本次大哉問'
   const originalName = calculation?.original ? `第 ${calculation.original.seq} 卦 · ${calculation.original.hexagram}` : '尚未完成六次擲骰'
   const pairName = calculation?.comprehensive ? `${calculation.pairTitle} · 第 ${calculation.comprehensive.seq} 卦 · ${calculation.comprehensive.hexagram}` : '尚未完成六次擲骰'
-  const prompt = buildAiReflectionPrompt({ question, originalName, pairName })
+  const changing = getChangingResult(calculation, journal.changingHexagram)
+  const changingName = changing?.data ? `第 ${changing.data.seq} 卦 · ${changing.data.hexagram}\n變爻：第 ${changing.line} 爻（${LINE_NAMES[changing.line - 1]}），${changing.originalBit === '1' ? '陽爻 → 陰爻' : '陰爻 → 陽爻'}` : null
+  const prompt = buildAiReflectionPrompt({ question, originalName, pairName, changingName })
 
   const copyPrompt = async () => {
     try {
@@ -656,6 +662,7 @@ function AiReflectionPanel({ journal, calculation }) {
     {/* <section className="ai-context" aria-labelledby="ai-context-title"><h3 id="ai-context-title">本次解讀資訊</h3><dl><div><dt>本次大哉問</dt><dd>{question}</dd></div><div><dt>本卦</dt><dd>{originalName}</dd></div><div><dt>綜卦／錯卦</dt><dd>{pairName}</dd></div></dl></section> */}
     {/*<section className="ai-context" aria-labelledby="ai-context-title"><div><dt>本次大哉問</dt><dd>{question}</dd></div></section> */}
     {(!clean(journal.questionText) || !calculation) && <p className="notice error">請完成本次大哉問與六次擲骰後，再取得包含完整卦象資訊的 AI 解讀提示詞。</p>}
+    {changing?.error && <p className="notice error" role="alert">{changing.error}</p>}
     <section className="ai-prompt-panel" aria-labelledby="ai-prompt-title"><h3 id="ai-prompt-title">AI 解讀提示詞</h3><p>已將本次問題與卦象資料帶入。複製後可貼到您使用的 AI 工具，取得以本卦為主、連結 SEL 五大核心能力的反思與行動建議。</p><div className="ai-prompt-actions ai-prompt-actions-top"><button className="primary" type="button" onClick={copyPrompt}>複製 AI 提示詞</button></div><textarea className="ai-prompt-text" value={prompt} readOnly rows="10" aria-label="AI 解讀提示詞內容" /><div className="ai-prompt-actions"><p className="copy-status" role="status" aria-live="polite">{copyStatus}</p></div></section>
   </div>
 }
@@ -956,7 +963,7 @@ function App() {
   </ol>
 </section>
   </div>
-  <div className="home-hero-actions"><AudienceSelector audience={homeAudience} onChange={setHomeAudience} className="home-audience-selector" /><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(homeAudience), 3)}>易解心結</button></div></div></header>
+  <div className="home-hero-actions"><AudienceSelector audience={homeAudience} onChange={setHomeAudience} className="home-audience-selector" /><div className="home-info-links"><button className="sel-link" onClick={() => setIsUserGuideOpen(true)}>使用指南</button><button className="sel-link" onClick={() => setIsSelDialogOpen(true)}>什麼是 SEL？</button><a className="sel-link" href="https://youtube.com/shorts/RkcRT_DXQOA?is=f_ULicg-NDR7-nDZ" target="_blank" rel="noreferrer">什麼是易經八卦</a><button className="sel-link" onClick={() => setIsUntieKnotDialogOpen(true)}>什麼是易解心結</button><button className="sel-link" onClick={() => setIsClassCultureOpen(true)}>#1 AI軟實力</button></div><div className="home-primary-actions"><button className="primary hero-button" onClick={() => start()}>＋ 建立新日誌</button><button className="primary hero-button" onClick={() => start(createJournal(homeAudience), 3)}>易解心結</button></div></div></header>
     <section className="privacy-banner"><strong>本機保存</strong><span>你的反思內容只會保存在這台裝置的瀏覽器中。請在共用裝置上謹慎使用，並定期匯出備份。</span></section>
     <section className="journal-list"><div className="section-heading"><div><p className="eyebrow">YOUR JOURNALS</p><h2>學習報告</h2></div><span>{journals.length} 份紀錄</span></div>{journals.length ? <div className="journal-cards">{journals.map((journal) => <article key={journal.journalId} className="journal-item"><div><span className={`status ${journal.status}`}>{journal.status === 'completed' ? '已完成' : '草稿'}</span><h3>{valueOrBlank(journal.questionText)}</h3><p>{formatDate(journal.activityAt)} · {valueOrBlank(journal.groupName)}</p></div><div className="item-actions"><button className="secondary" onClick={() => { setActiveId(journal.journalId); setStep(0) }}>繼續編輯</button><button className="icon-button" title="另存副本" aria-label="另存副本" onClick={() => duplicate(journal)}>⧉</button><button className="icon-button danger" title="刪除" aria-label="刪除" onClick={() => remove(journal.journalId)}>×</button></div></article>)}</div> : <div className="empty-state"><span>☷</span><h3>還沒有學習日誌</h3><p>建立第一份日誌，跟著八個步驟展開一次新的觀看。</p></div>}</section></main>
     {isSelDialogOpen && <SelDialog onClose={() => setIsSelDialogOpen(false)} />}{isUserGuideOpen && <UserGuideDialog onClose={() => setIsUserGuideOpen(false)} />}{isUntieKnotDialogOpen && <UntieTheKnotDialog onClose={() => setIsUntieKnotDialogOpen(false)} />}{isClassCultureOpen && <ClassCultureDialog onClose={() => setIsClassCultureOpen(false)} />}</>
